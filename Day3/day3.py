@@ -96,6 +96,43 @@ def partTwo(inp):
     nums_until_input.append(next(nums))
     return nums_until_input
 
+def visualize(pos_dict):
+    """Display as spiral the Vect: num dictionary."""
+
+    start_line = min(map(lambda v:v.x, pos_dict.keys()))
+    end_line = max(map(lambda v:v.x, pos_dict.keys()))
+    start_column = min(map(lambda v:v.y, pos_dict.keys()))
+    end_column = max(map(lambda v:v.y, pos_dict.keys()))
+
+    print("going from {minix}, {miniy} to {maxix}, {maxiy}".format(
+        minix=start_column
+        , miniy=start_line
+        , maxix=end_column
+        , maxiy=end_line
+    ))
+
+    for x in range(end_line, start_line-1, -1):
+        this_line_nums = []
+        for y in range(start_column, end_column+1):
+            if Vect(x, y) in pos_dict.keys():
+                this_line_nums.append(pos_dict[Vect(x, y)])
+        print(" ".join(map(lambda n: "{n:>6}".format(n=n), this_line_nums)))
+
+        
+        
+
+def visualizePartTwo(inp):
+    previous_nums = {Vect(0, 0): 1}
+
+    for pos in genPositions():
+        if pos == Vect(0, 0):
+            continue
+        else:
+            this_pos_sum = sum(previous_nums[k] for k in pos.adjacents() if k in previous_nums.keys())
+            previous_nums[pos] = this_pos_sum
+            if this_pos_sum>=inp:
+                break
+    visualize(previous_nums)
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
@@ -122,3 +159,5 @@ if __name__ == '__main__':
     if options.input:
         print("Path for part one has length {res}".format(res=partOne(options.input)))
         print("Value after {inp} is {res} using values {values}".format(inp=options.input, res=partTwo(options.input)[-1], values=partTwo(options.input)))
+        print("")
+        visualizePartTwo(options.input)
