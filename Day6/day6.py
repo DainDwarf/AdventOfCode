@@ -27,11 +27,19 @@ def UnitTest():
         , run=run
     ))
 
+    print("The length of the cycle is {res}".format(res=_partTwo(banks)))
+
+
 def partOne(inp):
     return len(runUntilCycle(list(map(int, inp.strip().split()))))
 
+def _partTwo(banks):
+    run = runUntilCycle(banks)
+    cycled = redistribute(run[-1])
+    return len(run) - run.index(cycled)
+
 def partTwo(inp):
-    return 0
+    return _partTwo(list(map(int, inp.strip().split())))
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
