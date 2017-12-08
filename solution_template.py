@@ -1,9 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from __future__ import print_function
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
-    pass
+    ex = "toto"
+
+    print("Unit test for Part One.")
+    print("Test {inp} gives {res}".format(inp=ex, res=partOne(ex)))
+
+    print("")
+    print("Unit test for Part Two.")
+    print("Test {inp} gives {res}".format(inp=ex, res=partTwo(ex)))
 
 
 def partOne(inp):
@@ -23,6 +30,6 @@ if __name__ == '__main__':
     if options.test:
         UnitTest()
     if options.input:
-        inp = options.input.read()
+        inp = options.input.read().strip()
         print("Answer for part one is : {res}".format(res=partOne(inp)))
         print("Answer for part two is : {res}".format(res=partTwo(inp)))
