@@ -39,6 +39,13 @@ def runInstructions(instructions):
         exec(line)
     return registers
 
+def genHighestValues(instructions):
+    """Yield highest value of registers at each step."""
+    registers = initVariables(instructions)
+    for line in formatInstructions(instructions):
+        exec(line)
+        yield max(registers.values())
+
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
     example="""b inc 5 if a > 1
@@ -51,13 +58,19 @@ c inc -20 if c == 10
     print("Highest register value is {res}".format(res=partOne(example)))
     print("All register values are {didi}".format(didi=runInstructions(example.strip().split('\n'))))
 
+    print("")
+    print("Unit testing part two.")
+    print("Highest values at each step are {vals}".format(vals=list(genHighestValues(example.strip().split('\n')))))
+    print("Highest ever value is {res}".format(res=partTwo(example)))
+
 def partOne(inp):
     instructions = inp.strip().split('\n')
     registers = runInstructions(instructions)
     return max(registers.values())
 
 def partTwo(inp):
-    pass
+    instructions = inp.strip().split('\n')
+    return max(genHighestValues(instructions))
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
