@@ -95,6 +95,9 @@ class Emulator(object):
                 return self.getValue(this.l) | self.getValue(this.r)
         self.wires[wire_name] = Or(l_name, r_name)
 
+    def reset(self):
+        self.values_cache = dict()
+
 def emulate(instructions):
     emu = Emulator()
 
@@ -161,14 +164,18 @@ NOT y -> i"""
 
     print("")
     print("Unit test for Part Two.")
-    print("Test {inp} gives {res}".format(inp=ex, res=partTwo(ex)))
+    print("There is no unit test for part two! I feel lost!")
 
 
 def partOne(inp):
     return emulate(inp.split('\n')).getValue('a')
 
 def partTwo(inp):
-    pass
+    emu = emulate(inp.split('\n'))
+    val_a = emu.getValue('a')
+    emu.reset()
+    emu.addValue('b', val_a)
+    return emu.getValue('a')
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
