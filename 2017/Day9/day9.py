@@ -2,11 +2,10 @@
 from __future__ import print_function
 import re
 
+escapes_re = r"!."
+comments_re = r"<[^>]*>"
 
 def cleanUp(s):
-    escapes_re = r"!."
-    comments_re = r"<[^>]*>"
-
     s = re.sub(escapes_re, "", s)
     s = re.sub(comments_re, "", s)
 
@@ -44,17 +43,52 @@ def UnitTest():
     print("Test {inp} gives {res}".format(inp=ex7, res=partOne(ex7)))
     print("Test {inp} gives {res}".format(inp=ex8, res=partOne(ex8)))
 
+    ex10 = '<>'
+    ex11 = '<random characters>'
+    ex12 = '<<<<>'
+    ex13 = '<{!>}>'
+    ex14 = '<!!>'
+    ex15 = '<!!!>>'
+    ex16 = '<{o"i!a,<{i<a>'
+    ex17 = 'eibunbeiruvb<{o"i!a,<{i<a>zeivuneiun<{o"i!a,<{i<a>efibyueiyubeiu'
+
+
     print("")
     print("Unit test for Part Two.")
-    print("Test {inp} gives {res}".format(inp=ex1, res=partTwo(ex1)))
+    print("Test {inp} gives {res}".format(inp=ex10, res=partTwo(ex10)))
+    print("Test {inp} gives {res}".format(inp=ex11, res=partTwo(ex11)))
+    print("Test {inp} gives {res}".format(inp=ex12, res=partTwo(ex12)))
+    print("Test {inp} gives {res}".format(inp=ex13, res=partTwo(ex13)))
+    print("Test {inp} gives {res}".format(inp=ex14, res=partTwo(ex14)))
+    print("Test {inp} gives {res}".format(inp=ex15, res=partTwo(ex15)))
+    print("Test {inp} gives {res}".format(inp=ex16, res=partTwo(ex16)))
+    print("Test {inp} gives {res}".format(inp=ex17, res=partTwo(ex17)))
 
 
 def partOne(inp):
     stream = cleanUp(inp)
     return sum(yellScores(stream))
 
+
+class CountGarbage(object):
+    def __init__(self):
+        self.count = 0
+    def __call__(self, match):
+        self.count += match.span()[1] - match.span()[0] -2
+    def getCount(self):
+        return self.count
+
 def partTwo(inp):
-    pass
+    stream = re.sub(escapes_re, "", inp)
+    counter = CountGarbage()
+    # The following does not correctly uses closure for 'garbage' variable.
+    # I suspect it might be a bug in python/re?
+    # garbage = 0
+    # def _count_garbage(match):
+    #     garbage += len(match)
+    #     return ""
+    re.sub(comments_re, counter, stream)
+    return counter.getCount()
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
