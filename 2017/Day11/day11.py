@@ -46,8 +46,7 @@ def genPath(p):
         yield (col, line)
 
 def genDistances(p):
-    for pos in genPath(p):
-        yield distance(pos)
+    return map(distance, genPath(p))
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
