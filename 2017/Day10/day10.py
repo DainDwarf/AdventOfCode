@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from __future__ import print_function
+from functools import reduce
 
 class Circle(object):
     def __init__(self, size):
@@ -20,6 +21,21 @@ class Circle(object):
     def __getitem__(self, i):
         return self.__l[i]
 
+def KnotHash(s):
+    lengths = list(map(ord, s)) + [17, 31, 73, 47, 23]
+    c = Circle(256)
+    for l in lengths*64:
+        c.makeAKnot(l)
+    dense = []
+    for block in range(16):
+        dense.append(reduce(lambda x, y: x^y, c[16*block:16*block+16]))
+
+    to_hex = ''.join(map(lambda n: "{:0>2x}".format(n), dense))
+    return to_hex
+
+
+
+
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
     testOne = Circle(5)
@@ -35,18 +51,28 @@ def UnitTest():
     testOne.makeAKnot(5)
     print("Aftert fourth knot (5) : {c}".format(c=testOne))
 
+    ex1= ""
+    ex2= "AoC 2017"
+    ex3= "1,2,3"
+    ex4= "1,2,4"
+
     print("")
     print("Unit test for Part Two.")
+    print("The input {i} gives a hash of {r}".format(i=ex1, r=partTwo(ex1)))
+    print("The input {i} gives a hash of {r}".format(i=ex2, r=partTwo(ex2)))
+    print("The input {i} gives a hash of {r}".format(i=ex3, r=partTwo(ex3)))
+    print("The input {i} gives a hash of {r}".format(i=ex4, r=partTwo(ex4)))
 
 
 def partOne(inp):
+    lengths = list(map(int, inp.strip().split(',')))
     c = Circle(256)
-    for l in inp:
+    for l in lengths:
         c.makeAKnot(l)
     return c[0] * c[1]
 
 def partTwo(inp):
-    pass
+    return KnotHash(inp.strip())
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
@@ -60,5 +86,5 @@ if __name__ == '__main__':
         UnitTest()
     if options.input:
         inp = options.input
-        print("Answer for part one is : {res}".format(res=partOne(list(map(int, inp.strip().split(','))))))
+        print("Answer for part one is : {res}".format(res=partOne(inp)))
         print("Answer for part two is : {res}".format(res=partTwo(inp)))
