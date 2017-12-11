@@ -26,45 +26,28 @@ def walkPath(p):
         line +=l
     return (col, line)
 
-def goToPos(position):
-    target_col, target_line = position
-    col=0
-    line=0
-    while not ((line == target_line and col==target_col)):
-        if col < target_col: #Need to go east
-            if line < target_line:
-                col  += directions['ne'][0]
-                line += directions['ne'][1]
-                yield 'ne'
-            else: #If we are at the correct line, we still need to go east.
-                col  += directions['se'][0]
-                line += directions['se'][1]
-                yield 'se'
-        elif col > target_col: #Need to go west
-            if line < target_line:
-                col  += directions['nw'][0]
-                line += directions['nw'][1]
-                yield 'nw'
-            else:
-                col  += directions['sw'][0]
-                line += directions['sw'][1]
-                yield 'sw'
-        else:
-            if line < target_line:
-                col  += directions['n'][0]
-                line += directions['n'][1]
-                yield 'n'
-            else:
-                col  += directions['s'][0]
-                line += directions['s'][1]
-                yield 's'
-
 def distance(position):
     # You need to at least walk that amount east (or west) to get to the position asked.
     ew_distance = abs(position[0])
     remaining_ns_distance = max(0, abs(position[1])-ew_distance)
     ns_steps = remaining_ns_distance // 2
     return ew_distance+ns_steps
+
+def genPath(p):
+    # Gives the successive positions during the path given by instructions.
+    col=0
+    line=0
+    yield (0, 0)
+
+    for d in p:
+        c, l = directions[d]
+        col +=c
+        line +=l
+        yield (col, line)
+
+def genDistances(p):
+    for pos in genPath(p):
+        yield distance(pos)
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
@@ -90,12 +73,7 @@ def partOne(inp):
 
 def partTwo(inp):
     child_path = inp.split(',')
-    def genDistances():
-        for i in range(len(child_path)+1):
-            sub_path = child_path[:i]
-            sub_pos = walkPath(sub_path)
-            yield distance(sub_pos)
-    return max(genDistances())
+    return max(genDistances(child_path))
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
