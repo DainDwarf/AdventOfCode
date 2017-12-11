@@ -59,6 +59,13 @@ def goToPos(position):
                 line += directions['s'][1]
                 yield 's'
 
+def distance(position):
+    # You need to at least walk that amount east (or west) to get to the position asked.
+    ew_distance = abs(position[0])
+    remaining_ns_distance = max(0, abs(position[1])-ew_distance)
+    ns_steps = remaining_ns_distance // 2
+    return ew_distance+ns_steps
+
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
     ex1 = "ne,ne,ne"
@@ -79,7 +86,7 @@ def UnitTest():
 def partOne(inp):
     child_path = inp.split(',')
     child_pos = walkPath(child_path)
-    return len(list(goToPos(child_pos)))
+    return distance(child_pos)
 
 def partTwo(inp):
     child_path = inp.split(',')
@@ -87,7 +94,7 @@ def partTwo(inp):
         for i in range(len(child_path)+1):
             sub_path = child_path[:i]
             sub_pos = walkPath(sub_path)
-            yield len(list(goToPos(sub_pos)))
+            yield distance(sub_pos)
     return max(genDistances())
 
 if __name__ == '__main__':
