@@ -82,7 +82,13 @@ def partOne(inp):
     return len(list(goToPos(child_pos)))
 
 def partTwo(inp):
-    pass
+    child_path = inp.split(',')
+    def genDistances():
+        for i in range(len(child_path)+1):
+            sub_path = child_path[:i]
+            sub_pos = walkPath(sub_path)
+            yield len(list(goToPos(sub_pos)))
+    return max(genDistances())
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
