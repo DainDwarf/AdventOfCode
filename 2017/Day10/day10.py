@@ -53,12 +53,12 @@ if __name__ == '__main__':
 
     args = ArgumentParser()
     args.add_argument("-t", "--test", help='Unit tests', action='store_true')
-    args.add_argument("-i", "--input", help='Your input list of lengths', nargs='+', type=int)
+    args.add_argument("-i", "--input", help='Your input list of lengths', type=str)
     options = args.parse_args()
 
     if options.test:
         UnitTest()
     if options.input:
         inp = options.input
-        print("Answer for part one is : {res}".format(res=partOne(inp)))
+        print("Answer for part one is : {res}".format(res=partOne(list(map(int, inp.strip().split(','))))))
         print("Answer for part two is : {res}".format(res=partTwo(inp)))
