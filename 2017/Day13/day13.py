@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from __future__ import print_function
+from itertools import count
 
 def scannerPosition(ran, clock):
     """Computes scanner position of a range 'ran' based on current clock."""
@@ -16,6 +17,10 @@ def getLayers(inp):
 def getSeverity(layers_dict, start_clock=0):
     """Returns the severity of a trip starting at start_clock."""
     return sum(layer*ran for layer, ran in layers_dict.items() if isCaught(layer, ran, start_clock))
+
+def isGettingThrough(layers_dict, start_clock):
+    """Checks if starting at start_clock gets you through all layers."""
+    return all(not isCaught(layer, ran, start_clock) for layer, ran in layers_dict.items())
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
@@ -36,7 +41,10 @@ def partOne(inp):
     return getSeverity(getLayers(inp), 0)
 
 def partTwo(inp):
-    pass
+    layers = getLayers(inp)
+    for start in count(): #Let's assume you won't get in an infinite loop!
+        if isGettingThrough(layers, start):
+            return start
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
