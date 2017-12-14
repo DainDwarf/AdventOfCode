@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from __future__ import print_function
 from day10 import partTwo as knotHash
+import networkx as nx
 
 
 def hexToBin(s):
@@ -16,8 +17,32 @@ class Disk(object):
     def __str__(self):
         return '\n'.join(''.join(map(lambda n: '#' if n==1 else '.', line)) for line in self.grid)
 
+    def __getitem__(self, pos):
+        line, col = pos
+        if 128 > line >= 0 and 128 > col >= 0:
+            return self.grid[pos[0]][pos[1]]
+        else:
+            return 0
+
     def getUsedCount(self):
         return sum(map(sum, self.grid))
+
+    def getRegionCount(self):
+        adjacency_graph = nx.Graph()
+        for lin in range(128):
+            for col in range(128):
+                if self[(lin, col)] == 1:
+                    adjacency_graph.add_node((lin, col))
+                    if                      self[(lin  , col-1)] == 1:          # Left
+                        adjacency_graph.add_edge((lin  , col-1), (lin, col))
+                    if                      self[(lin-1, col  )] == 1:          # Down
+                        adjacency_graph.add_edge((lin-1, col  ), (lin, col))
+                    if                      self[(lin+1, col  )] == 1:          # Up
+                        adjacency_graph.add_edge((lin+1, col  ), (lin, col))
+                    if                      self[(lin  , col+1)] == 1:          # Right
+                        adjacency_graph.add_edge((lin  , col+1), (lin, col))
+        return len(list(nx.connected_components(adjacency_graph)))
+
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
@@ -36,7 +61,8 @@ def partOne(inp):
     return d.getUsedCount()
 
 def partTwo(inp):
-    pass
+    d = Disk(inp)
+    return d.getRegionCount()
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
