@@ -1,7 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/pypy
 from __future__ import print_function
 import re
-from queue import PriorityQueue
 
 def genSubstitutions(molecule, fr, to):
     """Generates all substitutions you can get from a replacement rule 'fr => to' on given molecule."""
@@ -10,7 +9,8 @@ def genSubstitutions(molecule, fr, to):
 
 def genAllSubstitutions(molecule, rules):
     for fr, to in rules:
-        yield from genSubstitutions(molecule, fr, to)
+        for s in genSubstitutions(molecule, fr, to):
+            yield s
 
 def getAllRules(inp):
     return list(l.split(' => ') for l in inp.split('\n'))
@@ -49,6 +49,7 @@ def AStar(start, end, rules):
 
     while fScore:
         current, _ = min(fScore.items(), key=lambda i:i[1])
+        print(current)
         if current == end:
             return gScore[current]
 
