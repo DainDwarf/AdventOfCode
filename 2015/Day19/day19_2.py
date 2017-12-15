@@ -1,4 +1,4 @@
-#!/usr/bin/pypy
+#!/usr/bin/python3
 from __future__ import print_function
 import re
 
@@ -9,11 +9,13 @@ def genSubstitutions(molecule, fr, to):
 
 def genAllSubstitutions(molecule, rules):
     for fr, to in rules:
-        for s in genSubstitutions(molecule, fr, to):
-            yield s
+        yield from genSubstitutions(molecule, fr, to)
 
 def getAllRules(inp):
     return list(l.split(' => ') for l in inp.split('\n'))
+
+def getAllReverseRules(inp):
+    return list(map(lambda l: (l.strip().split(' => ')[1], l.strip().split(' => ')[0]),inp.split('\n')))
 
 def step(s, rules):
     ret = set()
@@ -49,7 +51,6 @@ def AStar(start, end, rules):
 
     while fScore:
         current, _ = min(fScore.items(), key=lambda i:i[1])
-        print(current)
         if current == end:
             return gScore[current]
 
@@ -69,6 +70,10 @@ def AStar(start, end, rules):
 def AStarPartTwo(molecule, rules_str):
     rules = getAllRules(rules_str)
     return AStar('e', molecule, rules)
+
+def AStarReversePartTwo(molecule, rules_str):
+    rules = getAllReverseRules(rules_str)
+    return AStar(molecule, 'e', rules)
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
@@ -90,8 +95,8 @@ O => HH"""
 
     print("")
     print("Unit test for Part Two.")
-    print("Test {inp} gives {res}".format(inp=ex1, res=AStarPartTwo(ex1, ex2_rules)))
-    print("Test {inp} gives {res}".format(inp=ex2, res=AStarPartTwo(ex2, ex2_rules)))
+    print("Test {inp} gives {res}".format(inp=ex1, res=AStarReversePartTwo(ex1, ex2_rules)))
+    print("Test {inp} gives {res}".format(inp=ex2, res=AStarReversePartTwo(ex2, ex2_rules)))
 
 
 def partOne(molecule, rules_str):
@@ -155,4 +160,4 @@ if __name__ == '__main__':
     if options.input:
         inp = options.input.read().strip()
         print("Answer for part one is : {res}".format(res=partOne(options.molecule, inp)))
-        print("Answer for part two is : {res}".format(res=AStarPartTwo(options.molecule, inp)))
+        print("Answer for part two is : {res}".format(res=AStarReversePartTwo(options.molecule, inp)))
