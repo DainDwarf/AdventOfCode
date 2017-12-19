@@ -36,6 +36,7 @@ class LettersCollector(object):
         self.line, self.col = maze.getStart()
         self.direction = 'down'
         self.letters = ''
+        self.steps = 1 #Including start
 
     def __str__(self):
         def genWithSelf():
@@ -53,6 +54,7 @@ class LettersCollector(object):
         newline = self.line+1
         if self.maze.isPath(newline, self.col):
             self.line = newline
+            self.steps += 1
         else:
             raise RuntimeError("Walking out of the maze!")
 
@@ -60,6 +62,7 @@ class LettersCollector(object):
         newline = self.line-1
         if self.maze.isPath(newline, self.col):
             self.line = newline
+            self.steps += 1
         else:
             raise RuntimeError("Walking out of the maze!")
 
@@ -67,6 +70,7 @@ class LettersCollector(object):
         newcol = self.col+1
         if self.maze.isPath(self.line, newcol):
             self.col = newcol
+            self.steps += 1
         else:
             raise RuntimeError("Walking out of the maze!")
 
@@ -74,6 +78,7 @@ class LettersCollector(object):
         newcol = max(0, self.col-1)
         if self.maze.isPath(self.line, newcol):
             self.col = newcol
+            self.steps += 1
         else:
             raise RuntimeError("Walking out of the maze!")
 
@@ -141,7 +146,10 @@ def partOne(inp):
     return walk.letters
 
 def partTwo(inp):
-    pass
+    maze = Maze(inp)
+    walk = LettersCollector(maze)
+    walk.autoWalk()
+    return walk.steps
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
