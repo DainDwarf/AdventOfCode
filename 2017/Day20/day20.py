@@ -30,12 +30,21 @@ class Particle(object):
         elif distance(self.acc) > distance(other.acc):
             return False
         else:
-            if distance(self.vel) < distance(other.vel):
-                return True
-            elif distance(self.vel) > distance(other.vel):
-                return False
-            else:
-                return distance(self.pos) < distance(other.pos)
+            #Compute inflexion point of each coordinates
+            raise RuntimeError("I don't know yet how to compare {l} and {r}".format(l=self, r=other))
+
+    def velocityPrediction(self, t):
+        return ( self.acc[0]*t+self.vel[0]
+               , self.acc[1]*t+self.vel[1]
+               , self.acc[2]*t+self.vel[2]
+        )
+
+    def positionPrediction(self, t):
+        # We can use int division, because position will be int.
+        return ( (self.acc[0]*t*t+(2*self.vel[0]+self.acc[0])*t+2*self.pos[0])//2
+               , (self.acc[1]*t*t+(2*self.vel[1]+self.acc[1])*t+2*self.pos[1])//2
+               , (self.acc[2]*t*t+(2*self.vel[2]+self.acc[2])*t+2*self.pos[2])//2
+       )
 
 def distance(pos):
     return sum(map(abs, pos))
