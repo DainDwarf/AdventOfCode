@@ -23,6 +23,20 @@ class Particle(object):
         self.vel = list(v+a for v, a in zip(self.vel, self.acc))
         self.pos = list(p+v for p, v in zip(self.pos, self.vel))
 
+    def __lt__(self, other):
+        """Using this ordering, the smallest particles ultimately is closest to 0,0,0, thus solving part 1."""
+        if distance(self.acc) < distance(other.acc):
+            return True
+        elif distance(self.acc) > distance(other.acc):
+            return False
+        else:
+            if distance(self.vel) < distance(other.vel):
+                return True
+            elif distance(self.vel) > distance(other.vel):
+                return False
+            else:
+                return distance(self.pos) < distance(other.pos)
+
 def distance(pos):
     return sum(map(abs, pos))
 
@@ -47,7 +61,7 @@ def UnitTest():
 p=<4,0,0>, v=<0,0,0>, a=<-2,0,0>""".strip()
 
     print("Unit test for Part One.")
-    print("Test {inp} gives {res}".format(inp=ex1, res=partOne(ex1, 4, True)))
+    print("Test {inp} gives {res}".format(inp=ex1, res=partOne(ex1)))
 
     ex2="""p=<-6,0,0>, v=<3,0,0>, a=<0,0,0>
 p=<-4,0,0>, v=<2,0,0>, a=<0,0,0>
@@ -59,14 +73,9 @@ p=<3,0,0>, v=<-1,0,0>, a=<0,0,0>""".strip()
     print("Test {inp} gives {res}".format(inp=ex2, res=partTwo(ex2, 4, True)))
 
 
-def partOne(inp, test_ticks=1000, debug=False):
+def partOne(inp):
     particles = list(map(Particle, inp.split('\n')))
-    for i in range(test_ticks):
-        if debug:
-            print("Closest particles are: {clos}".format(clos=closests(particles)))
-        for p in particles:
-            p.tick()
-    return closests(particles)
+    return particles.index(min(particles))
 
 def partTwo(inp, test_ticks=1000, debug=False):
     particles = list(map(Particle, inp.split('\n')))
