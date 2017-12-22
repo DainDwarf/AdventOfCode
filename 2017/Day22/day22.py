@@ -21,6 +21,16 @@ def turnLeft(d):
     elif d=='right':
         return 'up'
 
+def reverse(d):
+    if d=='up':
+        return 'down'
+    elif d=='down':
+        return 'up'
+    elif d=='left':
+        return 'right'
+    elif d=='right':
+        return 'left'
+
 class Carrier(object):
     def __init__(self, start_map):
         self.state = dict()
@@ -56,23 +66,48 @@ class Carrier(object):
             raise RuntimeError("Unknown state {s}".format(s=cur_state))
         self.walk()
 
+class Carrier2(Carrier):
+   def burst(self):
+       cur_state = self.state.get((self.cur_line, self.cur_col), 'C')
+       if cur_state == 'C':
+           self.state[self.cur_line, self.cur_col] = 'W'
+           self.direction = turnLeft(self.direction)
+       elif cur_state == 'W':
+           self.state[self.cur_line, self.cur_col] = 'I'
+           self.caused_infections += 1
+           # Does not change direction
+       elif cur_state == 'I':
+           self.state[self.cur_line, self.cur_col] = 'F'
+           self.direction = turnRight(self.direction)
+       elif cur_state == 'F':
+           self.state[self.cur_line, self.cur_col] = 'C'
+           self.direction = reverse(self.direction)
+       else:
+           raise RuntimeError("Unknown state {s}".format(s=cur_state))
+       self.walk()
 
 
 # That's handy, the Advent of Code gives unittests.
 def UnitTest():
     ex = "..#\n#..\n...".strip()
 
-    print("Unit test for Part One using map\n{inp}".format(inp=ex))
+    print("Unit test using map\n{inp}".format(inp=ex))
+
+    print("")
+    print("Unit test for Part One.")
     i1 = 7
     i2 = 70
     i3 = 10000
-    print("Test for {i} burst gives {res}".format(i=i1, res=partOne(ex, i1)))
-    print("Test for {i} burst gives {res}".format(i=i2, res=partOne(ex, i2)))
-    print("Test for {i} burst gives {res}".format(i=i3, res=partOne(ex, i3)))
+    print("Test for {i} bursts gives {res}".format(i=i1, res=partOne(ex, i1)))
+    print("Test for {i} bursts gives {res}".format(i=i2, res=partOne(ex, i2)))
+    print("Test for {i} bursts gives {res}".format(i=i3, res=partOne(ex, i3)))
 
+    i4=100
+    i5=10000000
     print("")
     print("Unit test for Part Two.")
-    print("Test {inp} gives {res}".format(inp=ex, res=partTwo(ex)))
+    print("Test for {i} bursts gives {res}".format(i=i4, res=partTwo(ex, i4)))
+    print("Test for {i} bursts gives {res}".format(i=i5, res=partTwo(ex, i5)))
 
 
 def partOne(inp, bursts=10000):
@@ -81,8 +116,11 @@ def partOne(inp, bursts=10000):
         car.burst()
     return car.caused_infections
 
-def partTwo(inp):
-    pass
+def partTwo(inp, bursts=10000000):
+    car = Carrier2(inp)
+    for i in range(bursts):
+        car.burst()
+    return car.caused_infections
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
