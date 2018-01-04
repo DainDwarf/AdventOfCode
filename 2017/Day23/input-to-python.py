@@ -1,5 +1,7 @@
+from sympy.ntheory.primetest import isprime
+
 def mySimulate():
-    a = 0
+    a = 1
     b = 0
     c = 0
     d = 0
@@ -21,22 +23,7 @@ def mySimulate():
     while True:
         f=1
 
-        d=2
-        while True:
-
-            e=2
-            while True:
-                if d*e == b:
-                    f=0
-                e+=1
-                if b == e:
-                    break
-
-            d+=1
-            if d == b:
-                break
-
-        if f == 0:
+        if not isprime(b):
             h+=1
 
         if c == b:
