@@ -2,13 +2,14 @@
 from __future__ import print_function
 
 # That's handy, the Advent of Code gives unittests.
-def UnitTest():
+def testOne():
     ex = "toto"
 
     print("Unit test for Part One.")
     print("Test {inp} gives {res}".format(inp=ex, res=partOne(ex)))
 
-    print("")
+def testTwo():
+    ex = "tata"
     print("Unit test for Part Two.")
     print("Test {inp} gives {res}".format(inp=ex, res=partTwo(ex)))
 
@@ -28,7 +29,9 @@ if __name__ == '__main__':
     options = args.parse_args()
 
     if options.test:
-        UnitTest()
+        testOne()
+        print("")
+        testTwo()
     if options.input:
         inp = options.input.read().strip()
         print("Answer for part one is : {res}".format(res=partOne(inp)))
