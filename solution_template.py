@@ -1,12 +1,14 @@
 #!/usr/bin/python3
 from __future__ import print_function
 
+
 # That's handy, the Advent of Code gives unittests.
 def testOne():
     ex = "toto"
 
     print("Unit test for Part One.")
     print("Test {inp} gives {res}".format(inp=ex, res=partOne(ex)))
+
 
 def testTwo():
     ex = "tata"
@@ -17,8 +19,10 @@ def testTwo():
 def partOne(inp):
     pass
 
+
 def partTwo(inp):
     pass
+
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
