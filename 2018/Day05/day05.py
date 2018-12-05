@@ -25,18 +25,27 @@ def testTwo():
     print("Test {inp} gives {res}".format(inp=ex, res=partTwo(ex)))
 
 
-def partOne(inp):
+def react(inp):
     hasChanged = True
     while hasChanged:
         inp, hasChanged = reaction_re.subn('', inp)
-    return len(inp)
+    return inp
+
+def partOne(inp):
+    return len(react(inp))
 
 
 def partTwo(inp):
+    # High level optimization: You get the same result if you iterate over
+    # the 26 possibilities on the already reduced input instead of the much
+    # bigger real input
+    inp = react(inp)
+
     improvements = dict()
     for c in alphabet:
         sub_inp, _ = re.subn("({c}|{C})".format(c=c, C=c.upper()), '', inp)
         improvements[c] = partOne(sub_inp)
+
     return min(improvements.values())
 
 
