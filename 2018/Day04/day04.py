@@ -49,6 +49,7 @@ def getSleepDF(inp):
     df = df.set_index("dt")
     df = df.resample('1T').ffill()
     df = df[df.index.hour == 0]
+    df["minute"] = df.index.minute
     return df
 
 
@@ -77,21 +78,39 @@ def testOne():
 
 
 def testTwo():
-    ex = "tata"
+    ex = """[1518-11-01 00:00] Guard #10 begins shift
+[1518-11-01 00:05] falls asleep
+[1518-11-01 00:25] wakes up
+[1518-11-01 00:30] falls asleep
+[1518-11-01 00:55] wakes up
+[1518-11-01 23:58] Guard #99 begins shift
+[1518-11-02 00:40] falls asleep
+[1518-11-02 00:50] wakes up
+[1518-11-03 00:05] Guard #10 begins shift
+[1518-11-03 00:24] falls asleep
+[1518-11-03 00:29] wakes up
+[1518-11-04 00:02] Guard #99 begins shift
+[1518-11-04 00:36] falls asleep
+[1518-11-04 00:46] wakes up
+[1518-11-05 00:03] Guard #99 begins shift
+[1518-11-05 00:45] falls asleep
+[1518-11-05 00:55] wakes up"""
+
     print("Unit test for Part Two.")
-    print("Test {inp} gives {res}".format(inp=ex, res=partTwo(ex)))
+    print("Test on given input gives {res}".format(inp=ex, res=partTwo(ex)))
 
 
 def partOne(inp):
     sleep_df = getSleepDF(inp)
-    mostSleepingGuard = sleep_df.groupby('id').sum().idxmax()[0]
-    sleeping_minutes = sleep_df[sleep_df["id"] == mostSleepingGuard][sleep_df["state"] == 1].index.minute
-    mostSleepingMinute = sleeping_minutes.value_counts().idxmax()
+    mostSleepingGuard = sleep_df.groupby('id')["state"].sum().idxmax()
+    mostSleepingMinute = sleep_df[sleep_df["id"] == mostSleepingGuard][sleep_df["state"] == 1]["minute"].value_counts().idxmax()
     return mostSleepingGuard*mostSleepingMinute
 
 
 def partTwo(inp):
-    pass
+    sleep_df = getSleepDF(inp)
+    guard, minute =  sleep_df[sleep_df["state"] == 1].groupby("id")["minute"].value_counts().idxmax()
+    return guard*minute
 
 
 if __name__ == '__main__':
