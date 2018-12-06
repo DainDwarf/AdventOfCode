@@ -7,9 +7,18 @@ def manhattan(p1, p2):
     return abs(p2[0]-p1[0]) + abs(p2[1]-p1[1])
 
 
+def getCircle(p, r):
+    if r == 0:
+        return [p]
+
+    x_coord = list(range(-r, r)) + list(range(r, -r, -1))
+    y_coord = x_coord[r:] + x_coord[:r]
+    return [(p[0]+x, p[1]+y) for x, y in zip(x_coord, y_coord)]
+
+
 class FiniteGrid(object):
     def __init__(self, points: List[Tuple[int, int]]):
-        self.points = points
+        self.focuses = points
         self.minx = min(p[0] for p in points)
         self.maxx = max(p[0] for p in points)
         self.miny = min(p[1] for p in points)
@@ -29,17 +38,43 @@ class FiniteGrid(object):
 
     def closest(self, p):
         """Returns index of closest point, or None if equidistant to several points."""
-        all_distances = list(map(lambda x:manhattan(p, x), self.points))
+        all_distances = list(map(lambda x:manhattan(p, x), self.focuses))
         min_distance = min(all_distances)
         if all_distances.count(min_distance) == 1:
             return all_distances.index(min_distance)
 
     def sumDistances(self, p):
-        return sum(map(lambda x:manhattan(p, x), self.points))
+        return sum(map(lambda x:manhattan(p, x), self.focuses))
+
+    def biggestFiniteAreaVoronoi(self):
+        """Computes for part one, using something like voronoi."""
+        areas = {i: 0 for i, f in enumerate(self.focuses)}
+        to_visit = {(x, y) for x in range(self.minx, self.maxx+1) for y in range(self.miny, self.maxy+1)}
+        r = 0
+        while to_visit:
+            new_points = dict() #point: list of focus at distance r
+            for i, f in enumerate(self.focuses):
+                for c in getCircle(f, r):
+                    if c in to_visit: #only look at points not already visited
+                        if c in new_points:
+                            new_points[c].append(i)
+                        else:
+                            new_points[c] = [i]
+            for p, f_indexes in new_points.items():
+                to_visit.discard(p)
+                if len(f_indexes) == 1: # Do not count when equidistant to several focuses
+                    i = f_indexes[0]
+                    if i in areas:
+                        areas[i] += 1
+                        if self.isBorder(p):
+                            areas.pop(i)
+            r += 1
+        return max(areas.values())
 
     def biggestFiniteArea(self):
         """Returns, well, solution for part one..."""
-        areas = {i: 0 for i, p in enumerate(self.points) if not self.isBorder(p)}
+        # TODO: That doesn't work!
+        areas = {i: 0 for i, p in enumerate(self.focuses) if not self.isBorder(p)}
         for x in range(self.minx, self.maxx+1):
             for y in range(self.miny, self.maxy+1):
                 close = self.closest((x, y))
@@ -84,7 +119,7 @@ def testTwo():
 
 def partOne(inp):
     grid = FiniteGrid.fromDescription(inp)
-    return grid.biggestFiniteArea()
+    return grid.biggestFiniteAreaVoronoi()
 
 
 def partTwo(inp, sum_distances=10000):
