@@ -66,7 +66,7 @@ class FiniteGrid(object):
                     i = f_indexes[0]
                     if i in areas:
                         areas[i] += 1
-                        if self.isBorder(p):
+                        if self.isBorder(p): #This will extend to infinity.
                             areas.pop(i)
             r += 1
         return max(areas.values())
