@@ -8,8 +8,8 @@ class Star(object):
         self.pos = position
         self.vel = velocity
 
-    def step(self):
-        self.pos = (self.pos[0]+self.vel[0], self.pos[1]+self.vel[1])
+    def step(self, n=1):
+        self.pos = (self.pos[0]+n*self.vel[0], self.pos[1]+n*self.vel[1])
 
 
 class StarsSimulator(object):
@@ -28,9 +28,9 @@ class StarsSimulator(object):
     def addStar(self, position, velocity):
         self.stars.append(Star(position, velocity))
 
-    def step(self):
+    def step(self, n=1):
         for star in self.stars:
-            star.step()
+            star.step(n)
 
     def __getitem__(self, pos):
         x, y = pos
@@ -122,6 +122,7 @@ if __name__ == '__main__':
     args = ArgumentParser()
     args.add_argument("-t", "--test", help='Unit tests', action='store_true')
     args.add_argument("-i", "--input", help='Your input file', type=FileType('r'))
+    args.add_argument("-s", "--skip", help='Number of steps to skip', type=int, default=0)
     options = args.parse_args()
 
     if options.test:
@@ -130,5 +131,11 @@ if __name__ == '__main__':
         testTwo()
     if options.input:
         inp = options.input.read().strip()
-        print("Answer for part one is : {res}".format(res=partOne(inp)))
-        print("Answer for part two is : {res}".format(res=partTwo(inp)))
+        stars = StarsSimulator.fromDescription(inp)
+        stars.step(options.skip)
+        i = options.skip
+        while not stars.aligned():
+            stars.step()
+            i += 1
+        stars.display()
+        print(f"Time taken: {i}")
