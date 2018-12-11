@@ -17,23 +17,19 @@ class FuelCells(object):
 
     def preCompute(self):
         """Compute an auxillary matrix of sum from 0, 0 to (x, y) for faster computation of squares sums"""
-        self.aux = dict()
-
-        # Copy first row
-        for x in range(0, 301):
-            self.aux[(0, x)] = 0
+        self.aux = [[0 for _ in range(0, 301)] for _ in range(0, 301)]
 
         # Do row wise sums
         for x in range(1, 301):
             cum_sum=0
             for y in range(0, 301):
                 cum_sum+=self[(x, y)]
-                self.aux[(x, y)] = cum_sum
+                self.aux[x][y] = cum_sum
 
         # Do column wise sums
         for x in range(1, 301):
             for y in range(0, 301):
-                self.aux[(x, y)] += self.aux[(x-1, y)]
+                self.aux[x][y] += self.aux[x-1][y]
 
     def __getitem__(self, pos):
         x, y = pos
@@ -54,7 +50,7 @@ class FuelCells(object):
         """Returns the total power of the square "size*size" start from from_pos."""
         from_x, from_y = from_pos
         to_x, to_y = from_x+size-1, from_y+size-1
-        return self.aux[(to_x, to_y)] - self.aux[(from_x-1, to_y)] - self.aux[(to_x, from_y-1)] + self.aux[(from_x-1, from_y-1)]
+        return self.aux[to_x][to_y] - self.aux[from_x-1][to_y] - self.aux[to_x][from_y-1] + self.aux[from_x-1][from_y-1]
 
     def HighestSquare(self, size=3):
         """Returns the top-left position of the best square."""
