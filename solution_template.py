@@ -4,16 +4,19 @@ from __future__ import print_function
 
 # That's handy, the Advent of Code gives unittests.
 def testOne():
-    ex = "toto"
+    inp = "toto"
+    res = partOne(inp)
 
     print("Unit test for Part One.")
-    print("Test {inp} gives {res}".format(inp=ex, res=partOne(ex)))
+    print(f"Test {inp} gives {res}")
 
 
 def testTwo():
-    ex = "tata"
+    inp = "toto"
+    res = partTwo(inp)
+
     print("Unit test for Part Two.")
-    print("Test {inp} gives {res}".format(inp=ex, res=partTwo(ex)))
+    print(f"Test {inp} gives {res}")
 
 
 def partOne(inp):
@@ -34,8 +37,9 @@ if __name__ == '__main__':
 
     if options.test:
         testOne()
-        print("")
+        print()
         testTwo()
+        print()
     if options.input:
         inp = options.input.read().strip()
         print("Answer for part one is : {res}".format(res=partOne(inp)))
