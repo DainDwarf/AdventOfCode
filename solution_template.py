@@ -1,7 +1,3 @@
-#!/usr/bin/python3
-from __future__ import print_function
-
-
 # That's handy, the Advent of Code gives unittests.
 def testOne():
     inp = "toto"
