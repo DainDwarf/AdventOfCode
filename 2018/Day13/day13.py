@@ -33,46 +33,30 @@ class Cart(object):
         self.x = x
         self.y = y
         if tile == "/":
-            if self.dir == "<":
-                self.dir = "v"
-            elif self.dir == ">":
-                self.dir = "^"
-            elif self.dir == "^":
-                self.dir = ">"
-            elif self.dir == "v":
-                self.dir = "<"
+            if   self.dir == "<": self.dir = "v"
+            elif self.dir == ">": self.dir = "^"
+            elif self.dir == "^": self.dir = ">"
+            elif self.dir == "v": self.dir = "<"
         elif tile == "\\":
-            if self.dir == "<":
-                self.dir = "^"
-            elif self.dir == ">":
-                self.dir = "v"
-            elif self.dir == "^":
-                self.dir = "<"
-            elif self.dir == "v":
-                self.dir = ">"
+            if   self.dir == "<": self.dir = "^"
+            elif self.dir == ">": self.dir = "v"
+            elif self.dir == "^": self.dir = "<"
+            elif self.dir == "v": self.dir = ">"
         elif tile == "+": # Hmmm
             if self.inter_choice == "left":
                 self.inter_choice = "straight"
-                if self.dir == "<":
-                    self.dir = "v"
-                elif self.dir == ">":
-                    self.dir = "^"
-                elif self.dir == "^":
-                    self.dir = "<"
-                elif self.dir == "v":
-                    self.dir = ">"
+                if   self.dir == "<": self.dir = "v"
+                elif self.dir == ">": self.dir = "^"
+                elif self.dir == "^": self.dir = "<"
+                elif self.dir == "v": self.dir = ">"
             elif self.inter_choice == "straight":
                 self.inter_choice = "right"
             elif self.inter_choice == "right":
                 self.inter_choice = "left"
-                if self.dir == "<":
-                    self.dir = "^"
-                elif self.dir == ">":
-                    self.dir = "v"
-                elif self.dir == "^":
-                    self.dir = ">"
-                elif self.dir == "v":
-                    self.dir = "<"
+                if   self.dir == "<": self.dir = "^"
+                elif self.dir == ">": self.dir = "v"
+                elif self.dir == "^": self.dir = ">"
+                elif self.dir == "v": self.dir = "<"
             else:
                 raise RuntimeError(f"Unknown intersection choice {self.inter_choice}")
         # Did you read it all? That was boring as hell...
