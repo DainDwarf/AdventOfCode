@@ -151,7 +151,7 @@ def testTwo():
   |   ^
   \<->/"""
     res1 = partTwo(example.strip('\n'), display=True)
-    print(f"Crash occured at position {res1}")
+    print(f"Last car standing is at position {res1}")
 
 
 def partOne(inp, display=False):
