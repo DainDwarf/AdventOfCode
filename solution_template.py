@@ -1,17 +1,19 @@
+
+
 # That's handy, the Advent of Code gives unittests.
 def testOne():
+    print("Unit test for Part One.")
+
     inp = "toto"
     res = partOne(inp)
-
-    print("Unit test for Part One.")
     print(f"Test {inp} gives {res}")
 
 
 def testTwo():
+    print("Unit test for Part Two.")
+
     inp = "toto"
     res = partTwo(inp)
-
-    print("Unit test for Part Two.")
     print(f"Test {inp} gives {res}")
 
 
