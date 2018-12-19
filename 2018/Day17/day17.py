@@ -1,10 +1,13 @@
 import re
+import networkx as nx
 
 
 class Ground(object):
     def __init__(self):
         self.clay = set()
         self.spring = (500, 0)
+        self.flow = nx.DiGraph()
+        self.flow.add_node(self.spring)
 
     @classmethod
     def fromDescription(cls, desc):
@@ -35,6 +38,8 @@ class Ground(object):
             return '#'
         elif (x, y) == self.spring:
             return '+'
+        elif (x, y) in self.flow:
+            return '|'
         else:
             return '.'
 
