@@ -74,6 +74,19 @@ class ThreeStateGameOfLife(object):
             new_grid.append(new_line)
         self.grid = new_grid
 
+    def steps(self, count):
+        """Detect a loop in state to fast forward steps count."""
+        seen_states = {0: self.grid}
+        for n in range(1, count+1):
+            self.step()
+            for prev_n, state in seen_states.items():
+                if state == self.grid:
+                    print(f"State {n} has already been seen as state {prev_n}.")
+                    loop_length = n-prev_n
+                    remaining_steps = count-n
+                    return self.steps(remaining_steps%loop_length)
+            seen_states[n] = self.grid
+
     def count(self, value):
         return sum(sum(1 if char == value else 0 for char in line) for line in self.grid)
 
@@ -106,26 +119,36 @@ def testOne():
         print()
 
     res = partOne(inp)
-    print(f"the total resource value after ten minutes is {res}.")
+    print(f"The total resource value after ten minutes is {res}.")
 
 
 def testTwo():
     print("Unit test for Part Two.")
 
-    inp = "toto"
+    inp = """.#.#...|#.
+.....#|##|
+.|..|...#.
+..|#.....#
+#.#|||#|#|
+...#.||...
+.|....|...
+||...#|.#|
+|.||||..|.
+...#.|..|."""
     res = partTwo(inp)
-    print(f"Test {inp} gives {res}")
+    print(f"The total resource value after a billion minutes is {res}.")
 
 
 def partOne(inp):
     grid = ThreeStateGameOfLife.fromDescription(inp)
-    for _ in range(10):
-        grid.step()
+    grid.steps(10)
     return grid.resourceValue()
 
 
 def partTwo(inp):
-    pass
+    grid = ThreeStateGameOfLife.fromDescription(inp)
+    grid.steps(1000000000)
+    return grid.resourceValue()
 
 
 if __name__ == '__main__':
