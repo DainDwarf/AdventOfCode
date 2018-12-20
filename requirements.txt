@@ -2,3 +2,4 @@ progressbar2
 ipython
 pandas
 networkx
+sympy
