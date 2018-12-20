@@ -3,6 +3,8 @@ import networkx as nx
 
 
 def parse(inp):
+    """Fortunately, its much easier than it seems, because each branch of
+    choices in parentheses lead to the same position, in fact."""
     G = nx.Graph()
     x = 0
     y = 0
@@ -27,8 +29,6 @@ def parse(inp):
         elif char == ")":
             branches.pop(-1)
     return G
-
-
 
 
 # That's handy, the Advent of Code gives unittests.
