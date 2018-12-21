@@ -85,7 +85,7 @@ class Ground(object):
             if debug:
                 self.display()
                 print()
-                time.sleep(0.1)
+                time.sleep(0.03)
             up = getUp(current_flow.pos)
             down = getDown(current_flow.pos)
             right = getRight(current_flow.pos)
@@ -153,7 +153,7 @@ class Ground(object):
 
 
 # That's handy, the Advent of Code gives unittests.
-def testOne():
+def testOne(debug=False):
     print("Unit test for Part One.")
 
     inp = """x=495, y=2..7
@@ -164,9 +164,7 @@ x=506, y=1..2
 x=498, y=10..13
 x=504, y=10..13
 y=13, x=498..504"""
-    gr = Ground.fromDescription(inp)
-    gr.computeFlow(debug=True)
-    res = len(gr.water)
+    res = partOne(inp, debug)
     print(f"The total number of tiles the water can reach is {res}.")
 
 
@@ -178,8 +176,10 @@ def testTwo():
     print(f"Test {inp} gives {res}")
 
 
-def partOne(inp):
-    pass
+def partOne(inp, debug=False):
+    gr = Ground.fromDescription(inp)
+    gr.computeFlow(debug=debug)
+    return len(gr.water) - 1 #removing the spring
 
 
 def partTwo(inp):
@@ -192,14 +192,15 @@ if __name__ == '__main__':
     args = ArgumentParser()
     args.add_argument("-t", "--test", help='Unit tests', action='store_true')
     args.add_argument("-i", "--input", help='Your input file', type=FileType('r'))
+    args.add_argument("-d", "--debug", help='Adding some debug output', action="store_true")
     options = args.parse_args()
 
     if options.test:
-        testOne()
+        testOne(options.debug)
         print()
         testTwo()
         print()
     if options.input:
         inp = options.input.read().strip()
-        print("Answer for part one is : {res}".format(res=partOne(inp)))
+        print("Answer for part one is : {res}".format(res=partOne(inp, options.debug)))
         print("Answer for part two is : {res}".format(res=partTwo(inp)))
