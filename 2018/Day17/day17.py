@@ -78,6 +78,14 @@ class Ground(object):
         for y in range(self.miny, self.maxy+1):
             print("".join(self[(x, y)] for x in range(self.minx, self.maxx+1)))
 
+    def countWater(self):
+        minGiveny = min(t[1] for t in self.clay)
+        return sum(1 if t[1] >= minGiveny else 0 for t in self.water.keys())
+
+    def countStillWater(self):
+        minGiveny = min(t[1] for t in self.clay)
+        return sum(1 if t[1] >= minGiveny and w.state == "full" else 0 for t, w in self.water.items())
+
     def computeFlow(self, debug=False):
         current_flow = Water(self.spring)
         self.water[self.spring] = current_flow
@@ -139,6 +147,18 @@ class Ground(object):
                             if self.water[left].state == "infinity" or self.water[right].state == "infinity":
                                 current_flow.state = "infinity"
                                 current_flow = current_flow.parent
+                                if self.water[left].state == "full":
+                                    #Need to render it as infinity instead! For everythin on the left
+                                    retrace_left = left
+                                    while retrace_left in self.water:
+                                        self.water[retrace_left].state = "infinity"
+                                        retrace_left = getLeft(retrace_left)
+                                elif self.water[right].state == "full":
+                                    #Need to render it as infinity instead! For everythin on the right
+                                    retrace_right = right
+                                    while retrace_right in self.water:
+                                        self.water[retrace_right].state = "infinity"
+                                        retrace_right = getRight(retrace_right)
                             else:
                                 current_flow.state = "full"
                                 current_flow = current_flow.parent
@@ -151,6 +171,10 @@ class Ground(object):
                         else:
                             current_flow.state = "full"
                             current_flow = current_flow.parent
+        minxWater = min(t[0] for t in self.water.keys())
+        maxxWater = max(t[0] for t in self.water.keys())
+        self.minx = min(self.minx, minxWater)
+        self.maxx = max(self.maxx, maxxWater)
 
 
 # That's handy, the Advent of Code gives unittests.
@@ -165,9 +189,8 @@ x=506, y=1..2
 x=498, y=10..13
 x=504, y=10..13
 y=13, x=498..504"""
-    # res = partOne(inp, debug)
-    # print(f"The total number of tiles the water can reach is {res}.")
-
+    res = partOne(inp, debug)
+    print(f"The total number of tiles the water can reach is {res}.")
 
 
     #   ......+......
@@ -190,23 +213,50 @@ x=506, y=1..8"""
     res = partOne(inp, debug)
     print(f"The total number of tiles the water can reach is {res}.")
 
+    #   ......+......
+    #   .............
+    #   #....###....#
+    #   #...........#
+    #   #.#.........#
+    #   #.#.......#.#
+    #   #.#.......#.#
+    #   #.#########.#
+    #   #...........#
+    inp = """y = 2, x=499..501
+x=496, y=4..7
+x=504, y=5..7
+y=7, x=497..503
+x=494, y=2..8
+x=506, y=2..8"""
+    res = partOne(inp, debug)
+    print(f"The total number of tiles the water can reach is {res}.")
 
-def testTwo():
+
+def testTwo(debug=False):
     print("Unit test for Part Two.")
 
-    inp = "toto"
-    res = partTwo(inp)
-    print(f"Test {inp} gives {res}")
+    inp = """x=495, y=2..7
+y=7, x=495..501
+x=501, y=3..7
+x=498, y=2..4
+x=506, y=1..2
+x=498, y=10..13
+x=504, y=10..13
+y=13, x=498..504"""
+    res = partTwo(inp, debug)
+    print(f"The total number of tiles that are retained is {res}.")
 
 
 def partOne(inp, debug=False):
     gr = Ground.fromDescription(inp)
     gr.computeFlow(debug=debug)
-    return len(gr.water) - 1 #removing the spring
+    return gr.countWater()
 
 
-def partTwo(inp):
-    pass
+def partTwo(inp, debug=False):
+    gr = Ground.fromDescription(inp)
+    gr.computeFlow(debug=debug)
+    return gr.countStillWater()
 
 
 if __name__ == '__main__':
@@ -221,9 +271,9 @@ if __name__ == '__main__':
     if options.test:
         testOne(options.debug)
         print()
-        testTwo()
+        testTwo(options.debug)
         print()
     if options.input:
         inp = options.input.read().strip()
         print("Answer for part one is : {res}".format(res=partOne(inp, options.debug)))
-        print("Answer for part two is : {res}".format(res=partTwo(inp)))
+        print("Answer for part two is : {res}".format(res=partTwo(inp, options.debug)))
