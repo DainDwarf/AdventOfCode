@@ -13,7 +13,12 @@ class WatchCPU(object):
     def parseCode(self, code):
         """Parse the code, without the instruction bounding operation."""
         self.code = []
-        for line in code.strip().split('\n'):
+        code = code.strip().split('\n')
+        if code[0].startswith('#'):
+            bind = int(code[0].split()[1])
+            self.bindIP(bind)
+            code = code[1:]
+        for line in code:
             instruction, *operands = line.split()
             self.code.append([instruction] + list(map(int, operands)))
 
@@ -103,10 +108,7 @@ seti 8 0 4
 seti 9 0 5"""
 
     watch = WatchCPU()
-    bind, code = inp.split('\n', 1)
-    bindN = int(bind.split()[1])
-    watch.bindIP(bindN)
-    watch.parseCode(code)
+    watch.parseCode(inp)
     for _ in range(5):
         watch.step(debug=True)
 
@@ -120,10 +122,7 @@ def testTwo():
 
 def partOne(inp, debug=False):
     watch = WatchCPU()
-    bind, code = inp.split('\n', 1)
-    bindN = int(bind.split()[1])
-    watch.bindIP(bindN)
-    watch.parseCode(code)
+    watch.parseCode(inp)
     try:
         while True:
             watch.step(debug=debug)
@@ -133,10 +132,7 @@ def partOne(inp, debug=False):
 
 def partTwo(inp, debug=False):
     watch = WatchCPU()
-    bind, code = inp.split('\n', 1)
-    bindN = int(bind.split()[1])
-    watch.bindIP(bindN)
-    watch.parseCode(code)
+    watch.parseCode(inp)
     watch.reg[0] = 1
     try:
         while True:
