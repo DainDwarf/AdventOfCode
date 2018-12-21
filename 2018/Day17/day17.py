@@ -1,13 +1,36 @@
-import re
-import networkx as nx
+import re, time
+
+
+def getUp(pos):
+    return (pos[0], pos[1]-1)
+
+def getDown(pos):
+    return (pos[0], pos[1]+1)
+
+def getLeft(pos):
+    return (pos[0]-1, pos[1])
+
+def getRight(pos):
+    return (pos[0]+1, pos[1])
+
+
+class Water(object):
+    """Everything to help doing a deep first search for water flowing."""
+    def __init__(self, position, parent=None):
+        self.pos = position
+        self.parent = parent
+        self.state = "flow"
 
 
 class Ground(object):
     def __init__(self):
         self.clay = set()
         self.spring = (500, 0)
-        self.flow = nx.DiGraph()
-        self.flow.add_node(self.spring)
+        self.water = dict() #Position: Water. Yes, that's redundant.
+        self.minx = 500
+        self.maxx = 500
+        self.miny = 0
+        self.maxy = 0
 
     @classmethod
     def fromDescription(cls, desc):
@@ -27,10 +50,18 @@ class Ground(object):
     def addVerticalClay(self, x, ymin, ymax):
         for y in range(ymin, ymax+1):
             self.clay.add((x, y))
+        self.miny = min(self.miny, ymin)
+        self.maxy = max(self.maxy, ymax)
+        self.minx = min(self.minx, x)
+        self.maxx = max(self.maxx, x)
 
     def addHorizontalClay(self, y, xmin, xmax):
         for x in range(xmin, xmax+1):
             self.clay.add((x, y))
+        self.miny = min(self.miny, y)
+        self.maxy = max(self.maxy, y)
+        self.minx = min(self.minx, xmin)
+        self.maxx = max(self.maxx, xmax)
 
     def __getitem__(self, pos):
         x, y = pos
@@ -38,18 +69,88 @@ class Ground(object):
             return '#'
         elif (x, y) == self.spring:
             return '+'
-        elif (x, y) in self.flow:
-            return '|'
+        elif (x, y) in self.water:
+            return '~' if self.water[(x, y)].state == "full" else "|"
         else:
             return '.'
 
     def display(self):
-        minx = min(t[0] for t in self.clay)
-        maxx = max(t[0] for t in self.clay)
-        miny = 0
-        maxy = max(t[1] for t in self.clay)
-        for y in range(miny, maxy+1):
-            print("".join(self[(x, y)] for x in range(minx, maxx+1)))
+        for y in range(self.miny, self.maxy+1):
+            print("".join(self[(x, y)] for x in range(self.minx, self.maxx+1)))
+
+    def computeFlow(self, debug=False):
+        current_flow = Water(self.spring)
+        self.water[self.spring] = current_flow
+        while current_flow is not None:
+            if debug:
+                self.display()
+                print()
+                time.sleep(0.1)
+            up = getUp(current_flow.pos)
+            down = getDown(current_flow.pos)
+            right = getRight(current_flow.pos)
+            left = getLeft(current_flow.pos)
+
+            #Search down first
+            if self[down] == '.':
+                if down[1] > self.maxy: #Backtrack
+                    current_flow.state = "infinity"
+                    current_flow = current_flow.parent
+                else:
+                    current_flow = Water(down, parent=current_flow)
+                    self.water[down] = current_flow
+            elif down in self.water and self.water[down].state == "infinity":
+                #Propagate backtrack
+                current_flow.state = "infinity"
+                current_flow = current_flow.parent
+            #Now, try right/left
+            else:
+                if self[right] == ".":
+                    current_flow = Water(right, parent=current_flow)
+                    self.water[right] = current_flow
+                elif self[left] == ".":
+                    current_flow = Water(left, parent=current_flow)
+                    self.water[left] = current_flow
+                else: #down, left and right are occupied...
+                    #But, we need to check if it is an infinity backtracking or filling backtracking,
+                    #and to now in what direction to go?
+                    if current_flow.parent is not None and current_flow.parent.pos == left:
+                        #Flowing horizontally, left to right
+                        if right in self.water:
+                            #Propagate backtrack
+                            current_flow.state = self.water[right].state
+                            current_flow = current_flow.parent
+                        else: #Blocked, fill the water
+                            current_flow.state = "full"
+                            current_flow = current_flow.parent
+                    elif current_flow.parent is not None and current_flow.parent.pos == right:
+                        #Flowing horizontally, right to left
+                        if left in self.water:
+                            #Propagate backtrack
+                            current_flow.state = self.water[left].state
+                            current_flow = current_flow.parent
+                        else: #Blocked, fill the water
+                            current_flow.state = "full"
+                            current_flow = current_flow.parent
+                    elif current_flow.parent is not None and current_flow.parent.pos == up:
+                        #Left and right occupied, and parent is upward...
+                        if left in self.water and right in self.water:
+                            #Merging two flow
+                            if self.water[left].state == "infinity" or self.water[right].state == "infinity":
+                                current_flow.state = "infinity"
+                                current_flow = current_flow.parent
+                            else:
+                                current_flow.state = "full"
+                                current_flow = current_flow.parent
+                        elif left in self.water:
+                            current_flow.state = self.water[left].state
+                            current_flow = current_flow.parent
+                        elif right in self.water:
+                            current_flow.state = self.water[right].state
+                            current_flow = current_flow.parent
+                        else:
+                            raise RuntimeError("Not possible I think?")
+
 
 # That's handy, the Advent of Code gives unittests.
 def testOne():
@@ -64,8 +165,9 @@ x=498, y=10..13
 x=504, y=10..13
 y=13, x=498..504"""
     gr = Ground.fromDescription(inp)
-    gr.display()
-    # print(f"Test {inp} gives {res}")
+    gr.computeFlow(debug=True)
+    res = len(gr.water)
+    print(f"The total number of tiles the water can reach is {res}.")
 
 
 def testTwo():
