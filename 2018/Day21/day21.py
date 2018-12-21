@@ -57,6 +57,12 @@ class WatchCPU(object):
     def muli(self, regA, regB, regC):
         self.reg[regC] = self.reg[regA]*regB
 
+    def divr(self, regA, regB, regC):
+        self.reg[regC] = self.reg[regA]//self.reg[regB]
+
+    def divi(self, regA, regB, regC):
+        self.reg[regC] = self.reg[regA]//regB
+
     def banr(self, regA, regB, regC):
         self.reg[regC] = self.reg[regA]&self.reg[regB]
 
@@ -113,9 +119,11 @@ def partTwo(inp, debug=False):
         while True:
             watch.step(debug=debug)
             if watch.ip == 28: #At least for my input, line 28 is the only one using register 0.
-                print("Comparing register 0 to {reg}".format(reg=watch.reg[5]))
+                if debug:
+                    print("Comparing register 0 to {reg}".format(reg=watch.reg[5]))
                 if watch.reg[5] in seen_comparisons:
-                    print("Comparing to already seen number. Last comparison was {last}".format(last=seen_comparisons[-1]))
+                    if debug:
+                        print("Comparing to already seen number. Last comparison was {last}".format(last=seen_comparisons[-1]))
                     return seen_comparisons[-1]
                 else:
                     seen_comparisons.append(watch.reg[5])
@@ -133,4 +141,4 @@ if __name__ == '__main__':
 
     inp = options.input.read().strip()
     print("Answer for part one is : {res}".format(res=partOne(inp, debug=options.debug)))
-    print("Answer for part two is : {res}".format(res=partTwo(inp)))
+    print("Answer for part two is : {res}".format(res=partTwo(inp, debug=options.debug)))
