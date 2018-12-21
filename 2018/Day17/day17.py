@@ -149,7 +149,8 @@ class Ground(object):
                             current_flow.state = self.water[right].state
                             current_flow = current_flow.parent
                         else:
-                            raise RuntimeError("Not possible I think?")
+                            current_flow.state = "full"
+                            current_flow = current_flow.parent
 
 
 # That's handy, the Advent of Code gives unittests.
@@ -164,6 +165,28 @@ x=506, y=1..2
 x=498, y=10..13
 x=504, y=10..13
 y=13, x=498..504"""
+    # res = partOne(inp, debug)
+    # print(f"The total number of tiles the water can reach is {res}.")
+
+
+
+    #   ......+......
+    #   #...........#
+    #   #..#.....#..#
+    #   #..#.#.#.#..#
+    #   #..#.#.#.#..#
+    #   #..#.###.#..#
+    #   #..#.....#..#
+    #   #..#######..#
+    #   #...........#
+    inp = """x = 497, y=2..7
+x=503, y=2..7
+y=7, x=498..502
+x=499, y=3..4
+x=501, y=3..4
+y=5, x=499..501
+x=494, y=1..8
+x=506, y=1..8"""
     res = partOne(inp, debug)
     print(f"The total number of tiles the water can reach is {res}.")
 
