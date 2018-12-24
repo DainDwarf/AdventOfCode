@@ -1,5 +1,6 @@
 import re
 import math
+import heapq
 
 
 def manhattan(p1, p2):
@@ -16,6 +17,11 @@ class Octahedron(object):
         """Intersection can simply be tested by mesuring the distance between the centers."""
         return manhattan(self.pos, other.pos) <= self.r+other.r
 
+    def __lt__(self, other):
+        if self.r == other.r:
+            return manhattan((0, 0, 0), self.pos) < manhattan((0, 0, 0), other.pos)
+        else:
+            return self.r<other.r
 
 # That's handy, the Advent of Code gives unittests.
 def testOne():
@@ -45,7 +51,7 @@ pos=<14,14,14>, r=6
 pos=<50,50,50>, r=200
 pos=<10,10,10>, r=5"""
     res = partTwo(inp)
-    print(f"Test {inp} gives {res}")
+    print(f"Second example gives {res}")
 
 
 def partOne(inp):
@@ -58,36 +64,52 @@ def partOne(inp):
     return sum(1 if manhattan(b, best_bot) <= bot_range else 0 for b, _ in bots)
 
 
+class OctaSearchQueue(object):
+    """Priorty queue wrapper for the octahedron search."""
+    def __init__(self, bots):
+        self.__h = []
+        self.bots = bots
+
+    def add(self, octa):
+        weight = sum(1 if octa.intersect(b) else 0 for b in self.bots)
+        dist = manhattan((0, 0, 0), octa.pos)
+        heapq.heappush(self.__h, (-weight, octa))
+
+    def pop(self):
+        """Pop the best candidate."""
+        return heapq.heappop(self.__h)[1]
+
+    def __bool__(self):
+        return bool(self.__h)
+
+        
 def partTwo(inp):
     num_re = r"(-?\d+)"
     bots = []
     for line in inp.split('\n'):
         x, y, z, r = list(map(int, re.findall(num_re, line)))
         bots.append(Octahedron((x, y, z), r))
-    max_range = max(b.r for b in bots)
-    #Avoid issues by rounding to next power of 2
-    max_range = 2**math.ceil(math.log2(max_range))
-
+    max_x = max(abs(b.pos[0]) for b in bots)
+    max_y = max(abs(b.pos[1]) for b in bots)
+    max_z = max(abs(b.pos[2]) for b in bots)
+    max_range = max(max_x, max_y, max_z)
 
     #Now, some dichotomy:
-    search_bots = [Octahedron((0, 0, 0), max_range)]
-    current_r = max_range
-    while current_r > 1:
-        print("Range {r}, searching through {num} subspaces".format(r=current_r, num=len(search_bots)))
-        sub_search = []
-        sub_r = current_r//2
-        for bot in search_bots:
-            x, y, z = bot.pos
-            sub_search.append(Octahedron((x+sub_r, y, z), sub_r))
-            sub_search.append(Octahedron((x-sub_r, y, z), sub_r))
-            sub_search.append(Octahedron((x, y+sub_r, z), sub_r))
-            sub_search.append(Octahedron((x, y-sub_r, z), sub_r))
-            sub_search.append(Octahedron((x, y, z+sub_r), sub_r))
-            sub_search.append(Octahedron((x, y, z-sub_r), sub_r))
-            #There are two missing?
-        search_bots = sub_search
-        current_r = sub_r
-        raise NotImplementedError("Nope")
+    search_bots = OctaSearchQueue(bots)
+    search_bots.add(Octahedron((0, 0, 0), max_range))
+    while search_bots:
+        octa = search_bots.pop()
+        if octa.r == 0:
+            return manhattan((0, 0, 0), octa.pos)
+        offset = math.floor(octa.r/3) if octa.r >= 3 else 1 if octa.r > 0 else 0
+        sub_r = octa.r - offset
+        x, y, z = octa.pos
+        search_bots.add(Octahedron((x+offset, y, z), sub_r))
+        search_bots.add(Octahedron((x-offset, y, z), sub_r))
+        search_bots.add(Octahedron((x, y+offset, z), sub_r))
+        search_bots.add(Octahedron((x, y-offset, z), sub_r))
+        search_bots.add(Octahedron((x, y, z+offset), sub_r))
+        search_bots.add(Octahedron((x, y, z-offset), sub_r))
 
 
 if __name__ == '__main__':
