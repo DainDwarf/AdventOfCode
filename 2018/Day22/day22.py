@@ -90,12 +90,16 @@ class DijkstraSavior(object):
             n[(x, y-1, tool)] = 1
         return n
 
+    def bestNeighbor(self):
+        """Return node and its distance from 0,0 of the best unvisited node."""
+        return min(self.tentative.items(), key=lambda t:t[1])
+
     def saveTime(self):
         """Compute the minimal distance to save the reindeer."""
         targetX, targetY = self.cave.target
         target = (targetX, targetY, "torch")
         while target not in self.visited and self.tentative:
-            current_node, current_distance = min(self.tentative.items(), key=lambda t:t[1])
+            current_node, current_distance = self.bestNeighbor()
             for neigh_node, neigh_distance in self.neighbors(current_node).items():
                 if neigh_node not in self.visited:
                     if neigh_node in self.tentative:
@@ -105,6 +109,26 @@ class DijkstraSavior(object):
             self.visited[current_node] = current_distance
             self.tentative.pop(current_node)
         return self.visited[target]
+
+
+class AStarSavior(DijkstraSavior):
+    """Use A* algorithm to save that poor reindeer.
+
+    We consider the nodes as (x, y, tool).
+    This means we need to get from (0, 0, "torch") to (targetX, targetY, "torch").
+
+    We adapt the neighbors to return up/down/left/right if they don't require a tool change,
+    as well as staying on the same position but switching tool.
+
+    Tools are "torch", "climb", and "neither"."""
+    def bestNeighbor(self):
+        """The only variation between Dijkstra and A*."""
+        def __sort_func(item):
+            node, distance = item
+            x, y, _ = node
+            Tx, Ty = self.cave.target
+            return distance+abs(x-Tx)+abs(y-Ty)
+        return min(self.tentative.items(), key=__sort_func)
 
 
 # That's handy, the Advent of Code gives unittests.
@@ -139,7 +163,7 @@ def partOne(depth, target):
 
 def partTwo(depth, target):
     c = Cave(depth, target)
-    savior = DijkstraSavior(c)
+    savior = AStarSavior(c)
     return savior.saveTime()
 
 
