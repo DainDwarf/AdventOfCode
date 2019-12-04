@@ -24,9 +24,7 @@ def testCriteria2(inp, exp):
     assert res == exp
 
 
-def check_pass(i, minNum=100000, maxNum=999999):
-    if not minNum <= i <= maxNum:
-        return False
+def check_pass(i):
     s = list(str(i))
     if s != sorted(s): # Not increasing
         return False
@@ -35,9 +33,7 @@ def check_pass(i, minNum=100000, maxNum=999999):
     return True
 
 
-def check_pass2(i, minNum=100000, maxNum=999999):
-    if not minNum <= i <= maxNum:
-        return False
+def check_pass2(i):
     s = list(str(i))
     if s != sorted(s): # Not increasing
         return False
