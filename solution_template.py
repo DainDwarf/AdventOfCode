@@ -1,20 +1,20 @@
-
+import pytest
 
 # That's handy, the Advent of Code gives unittests.
-def testOne():
-    print("Unit test for Part One.")
-
-    inp = "toto"
+@pytest.mark.parametrize("inp, exp", [
+])
+def testOne(inp, exp):
     res = partOne(inp)
     print(f"Test {inp} gives {res}")
+    assert res == exp
 
 
-def testTwo():
-    print("Unit test for Part Two.")
-
-    inp = "toto"
+@pytest.mark.parametrize("inp, exp", [
+])
+def testTwo(inp, exp):
     res = partTwo(inp)
     print(f"Test {inp} gives {res}")
+    assert res == exp
 
 
 def partOne(inp):
@@ -29,16 +29,9 @@ if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
 
     args = ArgumentParser()
-    args.add_argument("-t", "--test", help='Unit tests', action='store_true')
-    args.add_argument("-i", "--input", help='Your input file', type=FileType('r'))
+    args.add_argument("input", help='Your input file', type=FileType('r'))
     options = args.parse_args()
 
-    if options.test:
-        testOne()
-        print()
-        testTwo()
-        print()
-    if options.input:
-        inp = options.input.read().strip()
-        print("Answer for part one is : {res}".format(res=partOne(inp)))
-        print("Answer for part two is : {res}".format(res=partTwo(inp)))
+    inp = options.input.read().strip()
+    print("Answer for part one is : {res}".format(res=partOne(inp)))
+    print("Answer for part two is : {res}".format(res=partTwo(inp)))
