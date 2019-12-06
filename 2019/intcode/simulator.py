@@ -16,7 +16,6 @@ def test_day_02(code, exp):
     print(f"Test {code} gives {res}")
     assert res == exp
 
-# That's handy, the Advent of Code gives unittests.
 @pytest.mark.parametrize("code, exp", [
     ("1002,4,3,4,33", "1002,4,3,4,99"),
     ("1101,100,-1,4,0", "1101,100,-1,4,99"),
@@ -28,9 +27,33 @@ def test_day_05(code, exp):
     print(f"Test {code} gives {res}")
     assert res == exp
 
-# That's handy, the Advent of Code gives unittests.
 @pytest.mark.parametrize("code, inp, exp", [
     ("3,0,4,0,99", [5], [5]),
+    # Test equal-to-8 codes
+    ("3,9,8,9,10,9,4,9,99,-1,8", [7], [0]),
+    ("3,9,8,9,10,9,4,9,99,-1,8", [8], [1]),
+    ("3,9,8,9,10,9,4,9,99,-1,8", [9], [0]),
+    ("3,3,1108,-1,8,3,4,3,99", [7], [0]),
+    ("3,3,1108,-1,8,3,4,3,99", [8], [1]),
+    ("3,3,1108,-1,8,3,4,3,99", [9], [0]),
+    # Test less-than-8 codes
+    ("3,9,7,9,10,9,4,9,99,-1,8", [7], [1]),
+    ("3,9,7,9,10,9,4,9,99,-1,8", [8], [0]),
+    ("3,9,7,9,10,9,4,9,99,-1,8", [9], [0]),
+    ("3,3,1107,-1,8,3,4,3,99", [7], [1]),
+    ("3,3,1107,-1,8,3,4,3,99", [8], [0]),
+    ("3,3,1107,-1,8,3,4,3,99", [9], [0]),
+    # Test jumps
+    ("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", [0], [0]),
+    ("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", [1], [1]),
+    ("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", [2], [1]),
+    ("3,3,1105,-1,9,1101,0,0,12,4,12,99,1", [0], [0]),
+    ("3,3,1105,-1,9,1101,0,0,12,4,12,99,1", [1], [1]),
+    ("3,3,1105,-1,9,1101,0,0,12,4,12,99,1", [2], [1]),
+    # Big test
+    ("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [7], [999]),
+    ("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [8], [1000]),
+    ("3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99", [9], [1001]),
 ])
 def test_day_05_input(code, inp, exp):
     simulator = Simulator(code, inp=inp)
@@ -112,6 +135,55 @@ class Simulator:
         self._output_values.append(out)
         self._ip += 2
 
+    def _jump_true(self,
+                   test_mode: ParamMode = ParamMode.POSITION,
+                   jump_mode: ParamMode = ParamMode.POSITION,
+    ):
+        """Op code 5"""
+        test = self.param_get(self._ip+1, test_mode)
+        jump = self.param_get(self._ip+2, jump_mode)
+        if test != 0:
+            self._ip = jump
+        else:
+            self._ip += 3
+
+    def _jump_false(self,
+                   test_mode: ParamMode = ParamMode.POSITION,
+                   jump_mode: ParamMode = ParamMode.POSITION,
+    ):
+        """Op code 6"""
+        test = self.param_get(self._ip+1, test_mode)
+        jump = self.param_get(self._ip+2, jump_mode)
+        if test == 0:
+            self._ip = jump
+        else:
+            self._ip += 3
+
+    def _lt(self,
+            lhs_mode: ParamMode = ParamMode.POSITION,
+            rhs_mode: ParamMode = ParamMode.POSITION,
+            out_mode: ParamMode = ParamMode.POSITION,
+    ):
+        """Op code 7"""
+        lhs = self.param_get(self._ip+1, lhs_mode)
+        rhs = self.param_get(self._ip+2, rhs_mode)
+        val = 1 if lhs < rhs else 0
+        self.param_set(val, self._ip+3, out_mode)
+        self._ip += 4
+
+
+    def _eq(self,
+            lhs_mode: ParamMode = ParamMode.POSITION,
+            rhs_mode: ParamMode = ParamMode.POSITION,
+            out_mode: ParamMode = ParamMode.POSITION,
+    ):
+        """Op code 8"""
+        lhs = self.param_get(self._ip+1, lhs_mode)
+        rhs = self.param_get(self._ip+2, rhs_mode)
+        val = 1 if lhs == rhs else 0
+        self.param_set(val, self._ip+3, out_mode)
+        self._ip += 4
+
     def _decode(self, pos):
         code = self[pos]
         op_code = code % 100
@@ -136,6 +208,14 @@ class Simulator:
             self._input(*modes)
         elif op_code == 4:
             self._output(*modes)
+        elif op_code == 5:
+            self._jump_true(*modes)
+        elif op_code == 6:
+            self._jump_false(*modes)
+        elif op_code == 7:
+            self._lt(*modes)
+        elif op_code == 8:
+            self._eq(*modes)
         elif op_code == 99:
             self._finished = True
         else:

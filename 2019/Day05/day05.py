@@ -9,7 +9,10 @@ def partOne(code):
 
 
 def partTwo(code):
-    pass
+    inp = int(input("Ship's thermal radiator ID: "))
+    simulator = Simulator(code, inp=[inp])
+    simulator.run()
+    return ",".join(str(i) for i in simulator.output())
 
 
 if __name__ == '__main__':
@@ -20,5 +23,5 @@ if __name__ == '__main__':
     options = args.parse_args()
 
     code = options.codeut.read().strip()
-    print("Answer for part ont is : {res}".format(res=partOne(code)))
+    print("Answer for part one is : {res}".format(res=partOne(code)))
     print("Answer for part two is : {res}".format(res=partTwo(code)))
