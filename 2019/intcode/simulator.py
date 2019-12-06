@@ -2,30 +2,41 @@ import pytest
 from enum import IntEnum, unique
 
 # That's handy, the Advent of Code gives unittests.
-@pytest.mark.parametrize("inp, exp", [
+@pytest.mark.parametrize("code, exp", [
     ("1,9,10,3,2,3,11,0,99,30,40,50", "3500,9,10,70,2,3,11,0,99,30,40,50"),
     ("1,0,0,0,99", "2,0,0,0,99"),
     ("2,3,0,3,99", "2,3,0,6,99"),
     ("2,4,4,5,99,0", "2,4,4,5,99,9801"),
     ("1,1,1,4,99,5,6,0,99", "30,1,1,4,2,5,6,0,99"),
 ])
-def test_day_02(inp, exp):
-    simulator = Simulator(inp)
+def test_day_02(code, exp):
+    simulator = Simulator(code)
     simulator.run()
     res = simulator.state()
-    print(f"Test {inp} gives {res}")
+    print(f"Test {code} gives {res}")
     assert res == exp
 
 # That's handy, the Advent of Code gives unittests.
-@pytest.mark.parametrize("inp, exp", [
+@pytest.mark.parametrize("code, exp", [
     ("1002,4,3,4,33", "1002,4,3,4,99"),
     ("1101,100,-1,4,0", "1101,100,-1,4,99"),
 ])
-def test_day_05(inp, exp):
-    simulator = Simulator(inp)
+def test_day_05(code, exp):
+    simulator = Simulator(code)
     simulator.run()
     res = simulator.state()
-    print(f"Test {inp} gives {res}")
+    print(f"Test {code} gives {res}")
+    assert res == exp
+
+# That's handy, the Advent of Code gives unittests.
+@pytest.mark.parametrize("code, inp, exp", [
+    ("3,0,4,0,99", [5], [5]),
+])
+def test_day_05_input(code, inp, exp):
+    simulator = Simulator(code, inp=inp)
+    simulator.run()
+    res = simulator.output()
+    print(f"Test {code} gives {res}")
     assert res == exp
 
 
@@ -36,10 +47,12 @@ class ParamMode(IntEnum):
 
 
 class Simulator:
-    def __init__(self, inp):
-        self._state = [int(i) for i in inp.split(',')]
+    def __init__(self, code, inp = None):
+        self._state = [int(i) for i in code.split(',')]
         self._ip = 0
         self._finished = False
+        self._input_values = inp if inp is not None else []
+        self._output_values = []
 
     def __getitem__(self, pos):
         return self._state[pos]
@@ -65,7 +78,7 @@ class Simulator:
         else:
             raise RuntimeError(f"Unknown mode {mode}.")
 
-    def add(self,
+    def _add(self,
             lhs_mode: ParamMode = ParamMode.POSITION,
             rhs_mode: ParamMode = ParamMode.POSITION,
             out_mode: ParamMode = ParamMode.POSITION,
@@ -76,7 +89,7 @@ class Simulator:
         self.param_set(lhs+rhs, self._ip+3, out_mode)
         self._ip += 4
 
-    def mul(self,
+    def _mul(self,
             lhs_mode: ParamMode = ParamMode.POSITION,
             rhs_mode: ParamMode = ParamMode.POSITION,
             out_mode: ParamMode = ParamMode.POSITION,
@@ -87,18 +100,19 @@ class Simulator:
         self.param_set(lhs*rhs, self._ip+3, out_mode)
         self._ip += 4
 
-    def input(self, store_mode: ParamMode = ParamMode.POSITION):
+    def _input(self, store_mode: ParamMode = ParamMode.POSITION):
         """Op code 3"""
-        i = int(input("Input instruction: "))
+        i = self._input_values.pop(0)
         self.param_set(i, self._ip+1, store_mode)
         self._ip += 2
 
-    def output(self, get_mode: ParamMode = ParamMode.POSITION):
+    def _output(self, get_mode: ParamMode = ParamMode.POSITION):
         """Op code 4"""
-        print(self.param_get(self._ip+1, get_mode))
+        out = self.param_get(self._ip+1, get_mode)
+        self._output_values.append(out)
         self._ip += 2
 
-    def decode(self, pos):
+    def _decode(self, pos):
         code = self[pos]
         op_code = code % 100
         code = code // 100
@@ -113,15 +127,15 @@ class Simulator:
         if self._finished:
             return
 
-        op_code, modes = self.decode(self._ip)
+        op_code, modes = self._decode(self._ip)
         if op_code == 1:
-            self.add(*modes)
+            self._add(*modes)
         elif op_code == 2:
-            self.mul(*modes)
+            self._mul(*modes)
         elif op_code == 3:
-            self.input(*modes)
+            self._input(*modes)
         elif op_code == 4:
-            self.output(*modes)
+            self._output(*modes)
         elif op_code == 99:
             self._finished = True
         else:
@@ -133,3 +147,6 @@ class Simulator:
 
     def state(self):
         return ",".join(str(i) for i in self._state)
+
+    def output(self):
+        return self._output_values

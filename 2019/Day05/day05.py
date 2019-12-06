@@ -1,12 +1,14 @@
 from intcode.simulator import Simulator
 
 
-def partOne(inp):
-    simulator = Simulator(inp)
+def partOne(code):
+    inp = int(input("Ship's air conditioner ID: "))
+    simulator = Simulator(code, inp=[inp])
     simulator.run()
+    return ",".join(str(i) for i in simulator.output())
 
 
-def partTwo(inp):
+def partTwo(code):
     pass
 
 
@@ -14,9 +16,9 @@ if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
 
     args = ArgumentParser()
-    args.add_argument("input", help='Your input file', type=FileType('r'))
+    args.add_argument("codeut", help='Your codeut file', type=FileType('r'))
     options = args.parse_args()
 
-    inp = options.input.read().strip()
-    partOne(inp)
-    print("Answer for part two is : {res}".format(res=partTwo(inp)))
+    code = options.codeut.read().strip()
+    print("Answer for part ont is : {res}".format(res=partOne(code)))
+    print("Answer for part two is : {res}".format(res=partTwo(code)))
