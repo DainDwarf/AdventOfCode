@@ -69,6 +69,19 @@ class ParamMode(IntEnum):
     IMMEDIATE = 1,
 
 
+@unique
+class Operation(IntEnum):
+    ADD = 1,
+    MUL = 2,
+    INPUT = 3,
+    OUTPUT = 4,
+    JUMP_TRUE = 5,
+    JUMP_FALSE = 6,
+    LT = 7,
+    EQ = 8,
+    FINISH = 99,
+
+
 class Simulator:
     def __init__(self, code, inp = None):
         self._state = [int(i) for i in code.split(',')]
@@ -186,7 +199,7 @@ class Simulator:
 
     def _decode(self, pos):
         code = self[pos]
-        op_code = code % 100
+        op_code = Operation(code % 100)
         code = code // 100
         modes = []
         while code > 0:
@@ -200,30 +213,40 @@ class Simulator:
             return
 
         op_code, modes = self._decode(self._ip)
-        if op_code == 1:
+        if op_code == Operation.ADD:
             self._add(*modes)
-        elif op_code == 2:
+        elif op_code == Operation.MUL:
             self._mul(*modes)
-        elif op_code == 3:
+        elif op_code == Operation.INPUT:
             self._input(*modes)
-        elif op_code == 4:
+        elif op_code == Operation.OUTPUT:
             self._output(*modes)
-        elif op_code == 5:
+        elif op_code == Operation.JUMP_TRUE:
             self._jump_true(*modes)
-        elif op_code == 6:
+        elif op_code == Operation.JUMP_FALSE:
             self._jump_false(*modes)
-        elif op_code == 7:
+        elif op_code == Operation.LT:
             self._lt(*modes)
-        elif op_code == 8:
+        elif op_code == Operation.EQ:
             self._eq(*modes)
-        elif op_code == 99:
+        elif op_code == Operation.FINISH:
             self._finished = True
         else:
             raise ValueError(f"Unkown OP code: {op_code}")
+        return op_code
 
-    def run(self):
+    def add_input(self, more_input: [int]):
+        self._input_values += more_input
+
+    def run(self, until: Operation = None):
         while not self._finished:
-            self._step()
+            op_code = self._step()
+            if until is not None and op_code is until:
+                return
+
+    @property
+    def finished(self):
+        return self._finished
 
     def state(self):
         return ",".join(str(i) for i in self._state)
