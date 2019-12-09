@@ -1,6 +1,7 @@
 import pytest
 from enum import IntEnum, unique
 
+
 # That's handy, the Advent of Code gives unittests.
 @pytest.mark.parametrize("code, exp", [
     ("1,9,10,3,2,3,11,0,99,30,40,50", "3500,9,10,70,2,3,11,0,99,30,40,50"),
@@ -16,6 +17,7 @@ def test_day_02(code, exp):
     print(f"Test {code} gives {res}")
     assert res == exp
 
+
 @pytest.mark.parametrize("code, exp", [
     ("1002,4,3,4,33", "1002,4,3,4,99"),
     ("1101,100,-1,4,0", "1101,100,-1,4,99"),
@@ -26,6 +28,7 @@ def test_day_05(code, exp):
     res = simulator.state()
     print(f"Test {code} gives {res}")
     assert res == exp
+
 
 @pytest.mark.parametrize("code, inp, exp", [
     ("3,0,4,0,99", [5], [5]),
@@ -63,10 +66,26 @@ def test_day_05_input(code, inp, exp):
     assert res == exp
 
 
+@pytest.mark.parametrize("code, exp", [
+    # Opcode 9
+    ("109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99", [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]),
+    # Big num (thanks python)
+    ("1102,34915192,34915192,7,4,7,99,0", [34915192*34915192]),
+    ("104,1125899906842624,99", [1125899906842624]),
+])
+def test_day_09_input(code, exp):
+    simulator = Simulator(code)
+    simulator.run()
+    res = simulator.output()
+    print(f"Test {code} gives {res}")
+    assert res == exp
+
+
 @unique
 class ParamMode(IntEnum):
     POSITION = 0,
     IMMEDIATE = 1,
+    RELATIVE = 2,
 
 
 @unique
@@ -79,19 +98,21 @@ class Operation(IntEnum):
     JUMP_FALSE = 6,
     LT = 7,
     EQ = 8,
+    RBO = 9,        # Relative Base Offset
     FINISH = 99,
 
 
 class Simulator:
     def __init__(self, code, inp = None):
-        self._state = [int(i) for i in code.split(',')]
+        self._state = {i: int(c) for i, c in enumerate(code.split(','))}
         self._ip = 0
+        self._relative_base = 0
         self._finished = False
         self._input_values = inp if inp is not None else []
         self._output_values = []
 
     def __getitem__(self, pos):
-        return self._state[pos]
+        return self._state.get(pos, 0)
 
     def __setitem__(self, pos, value):
         self._state[pos] = value
@@ -102,6 +123,8 @@ class Simulator:
             return self[self[pos]]
         elif mode is ParamMode.IMMEDIATE:
             return self[pos]
+        elif mode is ParamMode.RELATIVE:
+            return self[self[pos]+self._relative_base]
         else:
             raise RuntimeError(f"Unknown mode {mode}.")
 
@@ -111,6 +134,8 @@ class Simulator:
             self[self[pos]] = value
         elif mode is ParamMode.IMMEDIATE:
             raise RuntimeError("Cannot set value on immediate mode.")
+        elif mode is ParamMode.RELATIVE:
+            self[self[pos]+self._relative_base] = value
         else:
             raise RuntimeError(f"Unknown mode {mode}.")
 
@@ -197,6 +222,10 @@ class Simulator:
         self.param_set(val, self._ip+3, out_mode)
         self._ip += 4
 
+    def _rbo(self, mode: ParamMode = ParamMode.POSITION):
+        self._relative_base += self.param_get(self._ip+1, mode)
+        self._ip += 2
+
     def _decode(self, pos):
         code = self[pos]
         op_code = Operation(code % 100)
@@ -229,6 +258,8 @@ class Simulator:
             self._lt(*modes)
         elif op_code == Operation.EQ:
             self._eq(*modes)
+        elif op_code == Operation.RBO:
+            self._rbo(*modes)
         elif op_code == Operation.FINISH:
             self._finished = True
         else:
@@ -249,7 +280,28 @@ class Simulator:
         return self._finished
 
     def state(self):
-        return ",".join(str(i) for i in self._state)
+        end_memory = max(self._state.keys())
+        return ",".join(str(self._state.get(i, 0)) for i in range(end_memory+1))
 
     def output(self):
         return self._output_values
+
+
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+
+    args = ArgumentParser()
+    args.add_argument("code", help='Code to test', type=str)
+    options = args.parse_args()
+
+    code = options.code.strip()
+    simulator = Simulator(code)
+    while not simulator.finished:
+        inp = input()
+        if inp:
+            simulator.add_input([int(inp)])
+        op_code = simulator._step()
+        print(f"\nExecuted {op_code}:")
+        print(simulator.state())
+        print(f"IP: {simulator._ip}, RB: {simulator._relative_base}")
+        print(simulator.output())
