@@ -19,9 +19,9 @@ if __name__ == '__main__':
     from argparse import ArgumentParser, FileType
 
     args = ArgumentParser()
-    args.add_argument("codeut", help='Your codeut file', type=FileType('r'))
+    args.add_argument("code", help='Your code file', type=FileType('r'))
     options = args.parse_args()
 
-    code = options.codeut.read().strip()
+    code = options.code.read().strip()
     print("Answer for part one is : {res}".format(res=partOne(code)))
     print("Answer for part two is : {res}".format(res=partTwo(code)))
