@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.parametrize("inp, exp", [
-    ("0222112222120000", "01\n10"),
+    ("0222112222120000", " X\nX "),
 ])
 def testTwo(inp, exp):
     res = partTwo(inp, width=2, length=2)
