@@ -2,16 +2,19 @@ from intcode.simulator import Simulator
 
 
 def partOne(code):
-    inp = int(input("BOOST test input: "))
-    simulator = Simulator(code, inp=[inp])
+    simulator = Simulator(code, inp=[1])
     simulator.run()
     test_run = simulator.output()
     assert len(test_run) == 1, test_run
     return test_run[0]
 
 
-def partTwo(inp):
-    pass
+def partTwo(code):
+    simulator = Simulator(code, inp=[2])
+    simulator.run()
+    real_run = simulator.output()
+    assert len(real_run) == 1, real_run
+    return real_run[0]
 
 
 if __name__ == '__main__':
@@ -21,6 +24,6 @@ if __name__ == '__main__':
     args.add_argument("input", help='Your input file', type=FileType('r'))
     options = args.parse_args()
 
-    inp = options.input.read().strip()
-    print("Answer for part one is : {res}".format(res=partOne(inp)))
-    print("Answer for part two is : {res}".format(res=partTwo(inp)))
+    code = options.input.read().strip()
+    print("Answer for part one is : {res}".format(res=partOne(code)))
+    print("Answer for part two is : {res}".format(res=partTwo(code)))
