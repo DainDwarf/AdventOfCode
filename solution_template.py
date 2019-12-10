@@ -1,5 +1,6 @@
 import pytest
 
+
 # That's handy, the Advent of Code gives unittests.
 @pytest.mark.parametrize("inp, exp", [
 ])
