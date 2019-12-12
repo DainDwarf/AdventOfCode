@@ -1,6 +1,7 @@
 import pytest
 import re
 from itertools import count, product
+from math import gcd
 
 
 # That's handy, the Advent of Code gives unittests.
@@ -134,6 +135,10 @@ def testTwo(inp, exp):
     assert res == exp
 
 
+def lcm(a, b):
+    return abs(a*b) // gcd(a, b)
+
+
 def sign(x):
     if x < 0:
         return -1
@@ -192,8 +197,24 @@ def move_moons(moons):
         m.apply_velocity()
 
 
-def get_state(moons):
-    return tuple(m.position + m.velocity for m in moons)
+def get_state(moons, axis):
+    def _gen():
+        for m in moons:
+            yield m.position[axis]
+            yield m.velocity[axis]
+    return tuple(_gen())
+
+
+def get_period(inp, axis):
+    moons = [Moon.from_input(line) for line in inp.strip().split('\n')]
+    known_states = set()
+    state = get_state(moons, axis)
+    for steps in count(start=1):
+        known_states.add(state)
+        move_moons(moons)
+        state = get_state(moons, axis)
+        if state in known_states:
+            return steps
 
 
 def partOne(inp, steps=1000):
@@ -204,15 +225,10 @@ def partOne(inp, steps=1000):
 
 
 def partTwo(inp):
-    moons = [Moon.from_input(line) for line in inp.strip().split('\n')]
-    state = get_state(moons)
-    known_states= set()
-    for step in count(start=1):
-        known_states.add(state)
-        move_moons(moons)
-        state = get_state(moons)
-        if state in known_states:
-            return step
+    x_period = get_period(inp, 0)
+    y_period = get_period(inp, 1)
+    z_period = get_period(inp, 2)
+    return lcm(lcm(x_period, y_period), z_period)
 
 
 if __name__ == '__main__':
