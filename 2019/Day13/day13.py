@@ -1,9 +1,7 @@
 import pytest
-import random
 from enum import IntEnum, unique
-from time import sleep
 
-from intcode.simulator import Operation, Simulator, ParamMode
+from intcode.simulator import Simulator, ParamMode
 
 
 def sign(x):
@@ -44,12 +42,20 @@ class Screen:
         self._score = 0
         self._minx = self._maxx = None
         self._miny = self._maxy = None
+        self._acc = []
 
     def __setitem__(self, pos, value):
         if pos == (-1, 0):
             self._score = value
         else:
             self._screen[pos] = Tile(value)
+
+    def input(self, val):
+        self._acc.append(val)
+        if len(self._acc) == 3:
+            x, y, tile = self._acc
+            self[x, y] = tile
+            self._acc = []
 
     @property
     def minx(self):
@@ -91,7 +97,8 @@ class Screen:
         print()
         print(f"Score: {self._score}")
 
-    def get_block_count(self):
+    @property
+    def block_count(self):
         return sum(1 if t is Tile.BLOCK else 0 for t in self._screen.values())
 
     @property
@@ -117,39 +124,30 @@ class Arcade(Simulator):
         pp = self._screen.paddle_position
         return sign(bp[0] - pp[0])
 
-    def _input(self, store_mode: ParamMode = ParamMode.POSITION):
+    def _input(self, *args, **kwargs):
         if not self._input_values:
-            self.set_screen()
-            # self.display()
-            # sleep(0.03)
             inp = self.mini_ai()
             self.add_input([int(inp)])
-        super()._input(store_mode)
+        super()._input(*args, **kwargs)
+
+    def _output(self, *args, **kwargs):
+        super()._output(*args, **kwargs)
+        self._screen.input(self._output_values.pop(0))
 
     def auto_play(self):
         self[0] = 2
         self.run()
-
-    def set_screen(self):
-        output = self.output()
-        for x, y, tile in zip(output[::3], output[1::3], output[2::3]):
-            self._screen[x, y] = tile
-        self._output_values = []
 
     def display(self):
         self._screen.display()
 
     @property
     def block_count(self):
-        return self._screen.get_block_count()
+        return self._screen.block_count
 
     @property
     def score(self):
         return self._screen._score
-
-    def run(self):
-        super().run()
-        self.set_screen()
 
 
 def partOne(code):
@@ -173,5 +171,7 @@ if __name__ == '__main__':
     options = args.parse_args()
 
     code = options.input.read().strip()
-    print("Answer for part one is : {res}".format(res=partOne(code)))
-    print("Answer for part two is : {res}".format(res=partTwo(code)))
+    res1=partOne(code)
+    res2=partTwo(code)
+    print(f"Answer for part one is : {res1}")
+    print(f"Answer for part two is : {res2}")
