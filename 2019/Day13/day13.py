@@ -113,45 +113,56 @@ class Arcade(Simulator):
         self._screen = Screen()
 
     def mini_ai(self):
-        return sign(self._screen.ball_position[0] - self._screen.paddle_position[0])
+        bp = self._screen.ball_position
+        pp = self._screen.paddle_position
+        return sign(bp[0] - pp[0])
 
     def _input(self, store_mode: ParamMode = ParamMode.POSITION):
         if not self._input_values:
-            self.display()
-            sleep(0.03)
+            self.set_screen()
+            # self.display()
+            # sleep(0.03)
             inp = self.mini_ai()
             self.add_input([int(inp)])
         super()._input(store_mode)
 
-    def play(self):
+    def auto_play(self):
         self[0] = 2
-        while True:
-            self.run()
+        self.run()
 
-        print("GAME OVER")
-
-    def display(self):
+    def set_screen(self):
         output = self.output()
         for x, y, tile in zip(output[::3], output[1::3], output[2::3]):
             self._screen[x, y] = tile
-        self._screen.display()
         self._output_values = []
 
-    def get_block_count(self):
+    def display(self):
+        self._screen.display()
+
+    @property
+    def block_count(self):
         return self._screen.get_block_count()
+
+    @property
+    def score(self):
+        return self._screen._score
+
+    def run(self):
+        super().run()
+        self.set_screen()
 
 
 def partOne(code):
     arcade = Arcade(code)
     while not arcade.finished:
         arcade.run()
-    arcade.display()
-    return arcade.get_block_count()
+    return arcade.block_count
 
 
 def partTwo(code):
     arcade = Arcade(code)
-    arcade.play()
+    arcade.auto_play()
+    return arcade.score
 
 
 if __name__ == '__main__':
@@ -163,6 +174,4 @@ if __name__ == '__main__':
 
     code = options.input.read().strip()
     print("Answer for part one is : {res}".format(res=partOne(code)))
-    print("Let's play part 2! Press enter to start")
-    input()
-    partTwo(code)
+    print("Answer for part two is : {res}".format(res=partTwo(code)))
