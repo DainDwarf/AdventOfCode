@@ -60,46 +60,6 @@ class Screen:
             self._acc = []
 
     @property
-    def minx(self):
-        if self._minx is not None:
-            return self._minx
-        else:
-            self._minx = min(p[0] for p in self._screen.keys())
-            return self._minx
-
-    @property
-    def maxx(self):
-        if self._maxx is not None:
-            return self._maxx
-        else:
-            self._maxx = max(p[0] for p in self._screen.keys())
-            return self._maxx
-
-    @property
-    def miny(self):
-        if self._miny is not None:
-            return self._miny
-        else:
-            self._miny = min(p[1] for p in self._screen.keys())
-            return self._miny
-
-    @property
-    def maxy(self):
-        if self._maxy is not None:
-            return self._maxy
-        else:
-            self._maxy = max(p[1] for p in self._screen.keys())
-            return self._maxy
-
-    def display(self):
-        for y in range(self.miny, self.maxy+1):
-            for x in range(self.minx, self.maxx+1):
-                print(self._screen[x, y], end='')
-            print()
-        print()
-        print(f"Score: {self._score}")
-
-    @property
     def block_count(self):
         return sum(1 if t is Tile.BLOCK else 0 for t in self._screen.values())
 
@@ -142,9 +102,6 @@ class Arcade(Simulator):
     def auto_play(self):
         self[0] = 2
         self.run()
-
-    def display(self):
-        self._screen.display()
 
     @property
     def block_count(self):
