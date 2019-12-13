@@ -1,6 +1,8 @@
 import pytest
 from enum import IntEnum, unique
 
+import progressbar
+
 from intcode.simulator import Simulator, ParamMode
 
 
@@ -115,9 +117,10 @@ class Screen:
 
 
 class Arcade(Simulator):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, bar=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._screen = Screen()
+        self._bar = bar
 
     def mini_ai(self):
         bp = self._screen.ball_position
@@ -128,6 +131,8 @@ class Arcade(Simulator):
         if not self._input_values:
             inp = self.mini_ai()
             self.add_input([int(inp)])
+        if self._bar is not None:
+            self._bar.update(self._bar.max_value-self.block_count)
         super()._input(*args, **kwargs)
 
     def _output(self, *args, **kwargs):
@@ -157,9 +162,11 @@ def partOne(code):
     return arcade.block_count
 
 
-def partTwo(code):
-    arcade = Arcade(code)
+def partTwo(code, block_count):
+    bar = progressbar.ProgressBar(max_value=block_count)
+    arcade = Arcade(code, bar=bar)
     arcade.auto_play()
+    bar.update(bar.max_value-arcade.block_count)
     return arcade.score
 
 
@@ -172,6 +179,7 @@ if __name__ == '__main__':
 
     code = options.input.read().strip()
     res1=partOne(code)
-    res2=partTwo(code)
+    res2=partTwo(code, res1)
+    print()
     print(f"Answer for part one is : {res1}")
     print(f"Answer for part two is : {res2}")
