@@ -31,16 +31,17 @@ class Move(IntEnum):
 
     def move(self, pos):
         if self is Move.NORTH:
-            return (pos[0]+1, pos[1]  )
-        elif self is Move.SOUTH:
-            return (pos[0]-1, pos[1]  )
-        elif self is Move.WEST:
             return (pos[0]  , pos[1]-1)
-        elif self is Move.EAST:
+        elif self is Move.SOUTH:
             return (pos[0]  , pos[1]+1)
+        elif self is Move.WEST:
+            return (pos[0]-1, pos[1]  )
+        elif self is Move.EAST:
+            return (pos[0]+1, pos[1]  )
 
+    @property
     def right(self):
-        """Returns the move that dorresponds to the right of current direction."""
+        """Returns the move that corresponds to the right of current direction."""
         if self is Move.NORTH:
             return Move.EAST
         elif self is Move.EAST:
@@ -48,6 +49,18 @@ class Move(IntEnum):
         elif self is Move.SOUTH:
             return Move.WEST
         elif self is Move.WEST:
+            return Move.NORTH
+
+    @property
+    def left(self):
+        """Returns the move that corresponds to the left of current direction."""
+        if self is Move.NORTH:
+            return Move.WEST
+        elif self is Move.WEST:
+            return Move.SOUTH
+        elif self is Move.SOUTH:
+            return Move.EAST
+        elif self is Move.EAST:
             return Move.NORTH
 
 
@@ -71,15 +84,9 @@ class Tile(IntEnum):
 
 class Maze:
     def __init__(self):
-        self._maze = {
-            (0, 0): Tile.CORRIDOR,
-            (1, 0): Tile.UNKNOWN,
-            (0, 1): Tile.UNKNOWN,
-            (-1, 0): Tile.UNKNOWN,
-            (0, -1): Tile.UNKNOWN,
-        }
+        self._maze = {(0, 0): Tile.CORRIDOR}
 
-    def __str__(self):
+    def display(self, robot=None):
         minx = min(p[0] for p in self._maze.keys())
         maxx = max(p[0] for p in self._maze.keys())
         miny = min(p[1] for p in self._maze.keys())
@@ -87,40 +94,51 @@ class Maze:
         display = ""
         for y in range(miny, maxy+1):
             for x in range(minx, maxx+1):
-                display += str(self._maze.get((x, y), Tile.UNKNOWN))
+                if robot is not None and (x, y) == robot:
+                    display += '@'
+                else:
+                    display += str(self[x, y])
             display += '\n'
         return display
 
-    def add_tile(self, pos, tile):
+    def __getitem__(self, pos):
+        return self._maze.get(pos, Tile.UNKNOWN)
+
+    def __setitem__(self, pos, tile):
         assert pos not in self._maze or self._maze[pos] is Tile.UNKNOWN or self._maze[pos] is tile
         self._maze[pos] = tile
-        if tile is Tile.CORRIDOR or tile is Tile.OXYGEN:
-            for new_pos in [
-                    (pos[0]+1, pos[1]  ),
-                    (pos[0]-1, pos[1]  ),
-                    (pos[0]  , pos[1]+1),
-                    (pos[0]  , pos[1]-1),
-            ]:
-                if new_pos not in self._maze:
-                    self._maze[new_pos] = Tile.UNKNOWN
 
 
 class Explorer(Simulator):
     def __init__(self, *args, **kwargs):
         self._pos = (0, 0)
         self._try_dir = None
+        self._current_dir = Move.NORTH
         self._maze = Maze()
         super().__init__(*args, **kwargs)
 
     def _ai(self):
-        return random.choice(list(Move))
+        right_dir = self._current_dir.right
+        right_pos = right_dir.move(self._pos)
+        if self._maze[right_pos] is not Tile.WALL:
+            print(f"Going on the unknown right {right_pos}")
+            return right_dir
+        elif self._maze[self._current_dir.move(self._pos)] is not Tile.WALL:
+            print(f"Going forward, full speed!")
+            return self._current_dir
+        elif self._maze[self._current_dir.left.move(self._pos)] is not Tile.WALL:
+            print(f"Cannot go right nor in front. Going left.")
+            self._current_dir = self._current_dir.left
+            return self._current_dir
+        else:
+            print(f"Last try, behind?")
+            self._current_dir = self._current_dir.left.left
+            return self._current_dir
 
     def _input(self, *args, **kwargs):
         if not self._input_values:
             self._try_dir = self._ai()
             self.add_input([self._try_dir.value])
-        # if self._bar is not None:
-        #     self._bar.update(self._bar.max_value-self.block_count)
         super()._input(*args, **kwargs)
 
     def _output(self, *args, **kwargs):
@@ -128,15 +146,24 @@ class Explorer(Simulator):
         feedback = Tile(self._output_values.pop(0))
         if feedback is Tile.WALL:
             wall_pos = self._try_dir.move(self._pos)
-            self._maze.add_tile(wall_pos, feedback)
+            self._maze[wall_pos] = feedback
         elif feedback is Tile.CORRIDOR:
             self._pos = self._try_dir.move(self._pos)
-            self._maze.add_tile(self._pos, feedback)
+            self._maze[self._pos] = feedback
+            if self._try_dir is not self._current_dir:
+                # We tried the right position, and it was not a wall, continue on that direction.
+                self._current_dir = self._try_dir
         elif feedback is Tile.OXYGEN:
             self._pos = self._try_dir.move(self._pos)
+            self._maze[self._pos] = feedback
+            if self._try_dir is not self._current_dir:
+                # We tried the right position, and it was not a wall, continue on that direction.
+                self._current_dir = self._try_dir
             self._finished = True
 
-        print(self._maze)
+        print(self._maze.display(self._pos))
+        print(f"I did try {self._try_dir.name}")
+        print(f"Now navigating {self._current_dir.name}")
         sleep(0.01)
 
 
