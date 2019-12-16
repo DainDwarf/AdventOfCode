@@ -3,23 +3,8 @@ import random
 from time import sleep
 from intcode.simulator import Simulator, ParamMode
 from enum import IntEnum, unique
-
-
-# That's handy, the Advent of Code gives unittests.
-@pytest.mark.parametrize("inp, exp", [
-])
-def testOne(inp, exp):
-    res = partOne(inp)
-    print(f"Test {inp} gives {res}")
-    assert res == exp
-
-
-@pytest.mark.parametrize("inp, exp", [
-])
-def testTwo(inp, exp):
-    res = partTwo(inp)
-    print(f"Test {inp} gives {res}")
-    assert res == exp
+from networkx import Graph
+from networkx.algorithms.shortest_paths.generic import shortest_path
 
 
 @unique
@@ -85,6 +70,7 @@ class Tile(IntEnum):
 class Maze:
     def __init__(self):
         self._maze = {(0, 0): Tile.CORRIDOR}
+        self._paths = Graph()
 
     def display(self, robot=None):
         minx = min(p[0] for p in self._maze.keys())
@@ -107,6 +93,25 @@ class Maze:
     def __setitem__(self, pos, tile):
         assert pos not in self._maze or self._maze[pos] is Tile.UNKNOWN or self._maze[pos] is tile
         self._maze[pos] = tile
+        if tile in (Tile.CORRIDOR, Tile.OXYGEN):
+            for neighbor in [
+                    (pos[0]+1, pos[1]  ),
+                    (pos[0]-1, pos[1]  ),
+                    (pos[0]  , pos[1]+1),
+                    (pos[0]  , pos[1]-1),
+            ]:
+                if self[neighbor] in (Tile.CORRIDOR, Tile.OXYGEN):
+                    self._paths.add_edge(pos, neighbor)
+
+    def distance(self, a, b):
+        return len(shortest_path(self._paths, a, b)) - 1
+
+    @property
+    def oxygen_position(self):
+        for pos, tile in self._maze.items():
+            if tile is Tile.OXYGEN:
+                return pos
+
 
 
 class Explorer(Simulator):
@@ -121,17 +126,13 @@ class Explorer(Simulator):
         right_dir = self._current_dir.right
         right_pos = right_dir.move(self._pos)
         if self._maze[right_pos] is not Tile.WALL:
-            print(f"Going on the unknown right {right_pos}")
             return right_dir
         elif self._maze[self._current_dir.move(self._pos)] is not Tile.WALL:
-            print(f"Going forward, full speed!")
             return self._current_dir
         elif self._maze[self._current_dir.left.move(self._pos)] is not Tile.WALL:
-            print(f"Cannot go right nor in front. Going left.")
             self._current_dir = self._current_dir.left
             return self._current_dir
         else:
-            print(f"Last try, behind?")
             self._current_dir = self._current_dir.left.left
             return self._current_dir
 
@@ -159,17 +160,21 @@ class Explorer(Simulator):
             if self._try_dir is not self._current_dir:
                 # We tried the right position, and it was not a wall, continue on that direction.
                 self._current_dir = self._try_dir
+        if self._maze.oxygen_position is not None and self._pos == (0, 0):
+            #Stopping now, we explored the whole map.
             self._finished = True
 
-        print(self._maze.display(self._pos))
-        print(f"I did try {self._try_dir.name}")
-        print(f"Now navigating {self._current_dir.name}")
-        sleep(0.01)
+    def get_map(self):
+        return self._maze
 
 
-def partOne(code):
+def get_map(code):
     explore = Explorer(code)
     explore.run()
+    return explore.get_map()
+
+def partOne(full_map):
+    return full_map.distance((0, 0), full_map.oxygen_position)
 
 
 def partTwo(code):
@@ -184,5 +189,6 @@ if __name__ == '__main__':
     options = args.parse_args()
 
     code = options.input.read().strip()
-    print("Answer for part one is : {res}".format(res=partOne(code)))
-    print("Answer for part two is : {res}".format(res=partTwo(code)))
+    full_map = get_map(code)
+    print("Answer for part one is : {res}".format(res=partOne(full_map)))
+    print("Answer for part two is : {res}".format(res=partTwo(full_map)))
