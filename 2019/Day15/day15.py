@@ -5,6 +5,8 @@ from intcode.simulator import Simulator, ParamMode
 from enum import IntEnum, unique
 from networkx import Graph
 from networkx.algorithms.shortest_paths.generic import shortest_path
+from networkx.algorithms.traversal.depth_first_search import dfs_tree
+from networkx.algorithms.dag import dag_longest_path_length
 
 
 @unique
@@ -72,7 +74,7 @@ class Maze:
         self._maze = {(0, 0): Tile.CORRIDOR}
         self._paths = Graph()
 
-    def display(self, robot=None):
+    def __str__(self):
         minx = min(p[0] for p in self._maze.keys())
         maxx = max(p[0] for p in self._maze.keys())
         miny = min(p[1] for p in self._maze.keys())
@@ -80,8 +82,8 @@ class Maze:
         display = ""
         for y in range(miny, maxy+1):
             for x in range(minx, maxx+1):
-                if robot is not None and (x, y) == robot:
-                    display += '@'
+                if (x, y) == (0, 0):
+                    display += 'X'
                 else:
                     display += str(self[x, y])
             display += '\n'
@@ -112,6 +114,9 @@ class Maze:
             if tile is Tile.OXYGEN:
                 return pos
 
+    @property
+    def longest_oxygen_path(self):
+        return dag_longest_path_length(dfs_tree(self._paths, self.oxygen_position))
 
 
 class Explorer(Simulator):
@@ -173,12 +178,13 @@ def get_map(code):
     explore.run()
     return explore.get_map()
 
+
 def partOne(full_map):
     return full_map.distance((0, 0), full_map.oxygen_position)
 
 
 def partTwo(code):
-    pass
+    return full_map.longest_oxygen_path
 
 
 if __name__ == '__main__':
@@ -190,5 +196,6 @@ if __name__ == '__main__':
 
     code = options.input.read().strip()
     full_map = get_map(code)
+    print(full_map)
     print("Answer for part one is : {res}".format(res=partOne(full_map)))
     print("Answer for part two is : {res}".format(res=partTwo(full_map)))
