@@ -1,6 +1,4 @@
 import pytest
-import random
-from time import sleep
 from intcode.simulator import Simulator, ParamMode
 from enum import IntEnum, unique
 from networkx import Graph
