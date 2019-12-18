@@ -6,7 +6,6 @@ import pytest
 ])
 def test_one(inp, exp):
     res = part_one(inp)
-    print(f"Test {inp} gives {res}")
     assert res == exp
 
 
@@ -14,7 +13,6 @@ def test_one(inp, exp):
 ])
 def test_two(inp, exp):
     res = part_two(inp)
-    print(f"Test {inp} gives {res}")
     assert res == exp
 
 
