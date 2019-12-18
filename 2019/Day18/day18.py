@@ -12,6 +12,23 @@ def test_parse():
     assert maze.keys == {'b': (1, 1), 'a': (7, 1)}
 
 
+@pytest.mark.parametrize("inp, exp", [
+    ("""
+#########
+#b.A.@.a#
+#########""", {(7, 1): {(1, 1): (frozenset('A'), 6)},
+               (1, 1): {(7, 1): (frozenset('A'), 6)},
+               (5, 1): {(7, 1): (frozenset(), 2),
+                        (1, 1): (frozenset('A'), 4)},
+    }),
+])
+def test_path_cache(inp, exp):
+    maze = Maze(inp)
+    maze._construct_paths_cache()
+    res = maze._paths_cache
+    assert res == exp
+
+
 @pytest.mark.parametrize("inp, keys, exp", [
     ("""
 #########
@@ -87,6 +104,7 @@ class Maze:
         for y, line in enumerate(inp.strip().split('\n')):
             for x, cell in enumerate(line.strip()):
                 self._maze[x, y] = cell
+        self._paths_cache = None
 
     def __getitem__(self, pos):
         return self._maze[pos]
@@ -109,21 +127,40 @@ class Maze:
                 neigh.append(next_pos)
         return neigh
 
-    def keys_paths(self, start_pos, keys):
-        """Use BFS/dijkstra to find the shortest path from start_pos to every obtainable keys."""
+    def _construct_paths_cache(self):
+        if self._paths_cache is None:
+            self._paths_cache = {self.player_pos: self._get_single_path_cache(self.player_pos)}
+            for key_pos in self.keys.values():
+                self._paths_cache[key_pos] = self._get_single_path_cache(key_pos)
+
+    def _get_single_path_cache(self, start_pos):
         explored = set()
-        neigh = {start_pos: 0}
-        paths = dict()
+        neigh = {start_pos: (frozenset(), 0)}
+        paths = dict() # key position: (doors, distance)
         while neigh:
-            smallest_neigh, distance = min(neigh.items(), key=lambda i: i[1])
-            for new_neigh in self.neighbors(smallest_neigh, keys):
+            smallest_neigh, data = min(neigh.items(), key=lambda i: i[1][1])
+            doors, distance = data
+            for new_neigh in self.neighbors(smallest_neigh, 'abcdefghijklmnopqrstuvwxyz'):
                 if new_neigh not in explored:
-                    neigh[new_neigh] = distance+1
+                    if self[new_neigh] in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+                        neigh[new_neigh] = (doors.union({self[new_neigh]}), distance+1)
+                    else:
+                        neigh[new_neigh] = (doors, distance+1)
             explored.add(smallest_neigh)
             neigh.pop(smallest_neigh)
             cell = self[smallest_neigh]
-            if cell in 'abcdefghijklmnopqrstuvwxyz' and cell not in keys:
-                paths[smallest_neigh] = distance
+            if cell in 'abcdefghijklmnopqrstuvwxyz' and smallest_neigh != start_pos:
+                paths[smallest_neigh] = (doors, distance)
+        return paths
+
+    def keys_paths(self, start_pos, keys):
+        """Use BFS/dijkstra to find the shortest path from start_pos to every obtainable keys."""
+        self._construct_paths_cache()
+        paths = dict()
+        for key_pos, data in self._paths_cache[start_pos].items():
+            doors, distance = data
+            if all(d.lower() in keys for d in doors) and self[key_pos] not in keys:
+                paths[key_pos] = distance
         return paths
 
     def get_all_keys(self):
