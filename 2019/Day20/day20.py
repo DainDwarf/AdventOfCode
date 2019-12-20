@@ -147,24 +147,22 @@ def down(pos):
     return (pos[0], pos[1]+1)
 
 
-def _to_dict(inp):
-    """Transforms input into dictionary."""
-    parse = dict()
-    for y, line in enumerate(inp.split('\n')):
-        for x, cell in enumerate(line):
-            parse[x, y] = cell
-    return parse
+class DictMap(dict):
+    def __init__(self, inp):
+        for y, line in enumerate(inp.split('\n')):
+            for x, cell in enumerate(line):
+                self[x, y] = cell
+        self.minx = 0
+        self.miny = 0
+        self.maxx = x-1
+        self.maxy = y-1
 
 
 def near_edge(pos, full_map, max_distance=3):
-    minx = min(p[0] for p in full_map.keys())
-    maxx = max(p[0] for p in full_map.keys())
-    miny = min(p[1] for p in full_map.keys())
-    maxy = max(p[1] for p in full_map.keys())
-    return (pos[0]-minx <= max_distance
-        or  maxx-pos[0] <= max_distance
-        or  pos[1]-miny <= max_distance
-        or  maxy-pos[1] <= max_distance
+    return (pos[0]-full_map.minx <= max_distance
+        or  full_map.maxx-pos[0] <= max_distance
+        or  pos[1]-full_map.miny <= max_distance
+        or  full_map.maxy-pos[1] <= max_distance
     )
 
 
@@ -303,14 +301,14 @@ def recursive_maze_dijkstra(portals):
 
 
 def part_one(inp):
-    first_pass = _to_dict(inp)
+    first_pass = DictMap(inp)
     parsed = parse_portals(first_pass)
     G, start, end = _to_donut(parsed)
     return len(shortest_path(G, start, end)) - 1
 
 
 def part_two(inp):
-    first_pass = _to_dict(inp)
+    first_pass = DictMap(inp)
     parsed = parse_portals(first_pass)
     portals = _precompute_single_level_paths(parsed)
     return recursive_maze_dijkstra(portals) - 1
