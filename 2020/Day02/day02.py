@@ -1,42 +1,6 @@
 #!/usr/bin/python3
 from collections import Counter
-import pytest
 import re
-
-
-# That's handy, the Advent of Code gives unittests.
-@pytest.mark.parametrize("inp, exp", [
-    ("1-3 a: abcde", True),
-    ("1-3 b: cdefg", False),
-    ("2-9 c: ccccccccc", True),
-])
-def test_line_is_valid(inp, exp):
-    res = line_is_valid(inp)
-    assert res == exp
-
-
-def test_one():
-    inp = """1-3 a: abcde
-1-3 b: cdefg
-2-9 c: ccccccccc"""
-    assert part_one(inp) == 2
-
-
-@pytest.mark.parametrize("inp, exp", [
-    ("1-3 a: abcde", True),
-    ("1-3 b: cdefg", False),
-    ("2-9 c: ccccccccc", False),
-])
-def test_new_line_is_valid(inp, exp):
-    res = new_line_is_valid(inp)
-    assert res == exp
-
-
-def test_two():
-    inp = """1-3 a: abcde
-1-3 b: cdefg
-2-9 c: ccccccccc"""
-    assert part_two(inp) == 1
 
 
 class PasswordPolicy:
@@ -63,24 +27,18 @@ class NewPasswordPolicy(PasswordPolicy):
             or (password[self.minimum-1] != self.letter and password[self.maximum-1] == self.letter)
 
 
-def line_is_valid(line):
+def line_is_valid(PolicyClass, line):
     policy_desc, password = line.strip().split(': ')
-    policy = PasswordPolicy.from_description(policy_desc)
-    return policy.password_is_valid(password)
-
-
-def new_line_is_valid(line):
-    policy_desc, password = line.strip().split(': ')
-    policy = NewPasswordPolicy.from_description(policy_desc)
+    policy = PolicyClass.from_description(policy_desc)
     return policy.password_is_valid(password)
 
 
 def part_one(inp):
-    return sum(line_is_valid(line) for line in inp.split('\n'))
+    return sum(line_is_valid(PasswordPolicy, line) for line in inp.split('\n'))
 
 
 def part_two(inp):
-    return sum(new_line_is_valid(line) for line in inp.split('\n'))
+    return sum(line_is_valid(NewPasswordPolicy, line) for line in inp.split('\n'))
 
 
 if __name__ == '__main__':
