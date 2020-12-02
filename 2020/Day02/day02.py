@@ -27,17 +27,16 @@ def test_one():
     ("1-3 b: cdefg", False),
     ("2-9 c: ccccccccc", False),
 ])
-def test_line_is_valid(inp, exp):
+def test_new_line_is_valid(inp, exp):
     res = new_line_is_valid(inp)
     assert res == exp
 
-@pytest.mark.parametrize("inp, exp", [
-])
-def test_two(inp, exp):
+
+def test_two():
     inp = """1-3 a: abcde
 1-3 b: cdefg
 2-9 c: ccccccccc"""
-    assert part_one(inp) == 1
+    assert part_two(inp) == 1
 
 
 class PasswordPolicy:
