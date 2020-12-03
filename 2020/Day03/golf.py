@@ -1,1 +1,5 @@
-import math;g=open("input").read().strip().split('\n');print(len([l for i,l in enumerate(g) if l[(3*i)%len(l)]=='#']),math.prod(len([l for i,l in enumerate(g) if s*i==int(s*i) and l[int(s*i)%len(l)]=='#']) for s in(0.5,1,3,5,7)))
+import math
+f='#'
+g=open(f).read().split('\n')[:-1]
+t=lambda s:len([l for i,l in enumerate(g)if s*i==int(s*i)and l[int(s*i)%len(l)]==f])
+print(t(3),math.prod(t(s)for s in(0.5,1,3,5,7)))
