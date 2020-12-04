@@ -1,5 +1,6 @@
 import pytest
 from day04 import *
+import day04_re
 
 
 inp="""ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
@@ -74,3 +75,60 @@ class TestPartTwo:
     ])
     def test_passports(self, desc, expected):
         assert SecurePassport.from_batch(desc).is_valid is expected
+
+
+class TestRegularExpressionMadness:
+    def test_one(self):
+        assert len(day04_re.part_one.findall(inp)) == 2
+
+    @pytest.mark.parametrize("byr, expected", [
+        ("byr:2002 ", True),
+        ("byr:2003 ", False),
+    ])
+    def test_byr(self, byr, expected):
+        assert bool(re.match(day04_re._byr, byr)) is expected
+
+    @pytest.mark.parametrize("hgt, expected", [
+        ("hgt:60in ", True),
+        ("hgt:190cm ", True),
+        ("hgt:190in ", False),
+        ("hgt:190 ", False),
+    ])
+    def test_hgt(self, hgt, expected):
+        assert bool(re.match(day04_re._hgt, hgt)) is expected
+
+    @pytest.mark.parametrize("hcl, expected", [
+        ("hcl:#123abc ", True),
+        ("hcl:#123abz ", False),
+        ("hcl:123abc ", False),
+    ])
+    def test_hcl(self, hcl, expected):
+        assert bool(re.match(day04_re._hcl, hcl)) is expected
+
+    @pytest.mark.parametrize("ecl, expected", [
+        ("ecl:brn ", True),
+        ("ecl:wat ", False),
+    ])
+    def test_ecl(self, ecl, expected):
+        assert bool(re.match(day04_re._ecl, ecl)) is expected
+
+    @pytest.mark.parametrize("pid, expected", [
+        ("pid:000000001 ", True),
+        ("pid:0123456789 ", False),
+    ])
+    def test_pid(self, pid, expected):
+        assert bool(re.match(day04_re._pid, pid)) is expected
+
+
+    @pytest.mark.parametrize("desc, expected", [
+        ("eyr:1972 cid:100 hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926\n"       , False),
+        ("iyr:2019 hcl:#602927 eyr:1967 hgt:170cm ecl:grn pid:012533040 byr:1946\n"         , False),
+        ("hcl:dab227 iyr:2012 ecl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277\n"  , False),
+        ("hgt:59cm ecl:zzz eyr:2038 hcl:74454a iyr:2023 pid:3556412378 byr:2007\n"          , False),
+        ("pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980 hcl:#623a2f\n"          , True ),
+        ("eyr:2029 ecl:blu cid:129 byr:1989 iyr:2014 pid:896056539 hcl:#a97842 hgt:165cm\n" , True ),
+        ("hcl:#888785 hgt:164cm byr:2001 iyr:2015 cid:88 pid:545766238 ecl:hzl eyr:2022\n"  , True ),
+        ("iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719\n"         , True ),
+    ])
+    def test_passports(self, desc, expected):
+        assert bool(day04_re.part_two.match(desc)) is expected
