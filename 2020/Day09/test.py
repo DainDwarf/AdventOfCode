@@ -30,5 +30,6 @@ def test_one():
 
 
 def test_two():
-    pass
+    res = part_two(inp, preamble=5)
+    assert res == 62
 

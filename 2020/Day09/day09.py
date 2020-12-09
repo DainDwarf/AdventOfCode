@@ -19,8 +19,22 @@ def part_one(inp, preamble=25):
             return x
 
 
-def part_two(inp):
-    pass
+def part_two(inp, preamble=25):
+    target = part_one(inp, preamble)
+    inp = list(map(int, inp.split('\n')))
+
+    current_sum = 0
+    low_index = high_index = 0
+    while low_index < len(inp):
+        if current_sum == target:
+            contiguous_set = inp[low_index:high_index]
+            return min(contiguous_set)+max(contiguous_set)
+        elif current_sum > target:
+            current_sum -= inp[low_index]
+            low_index +=1
+        elif current_sum < target:
+            current_sum += inp[high_index]
+            high_index += 1
 
 
 if __name__ == '__main__':
