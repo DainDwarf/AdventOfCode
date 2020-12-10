@@ -2,12 +2,25 @@
 
 
 def compute_validation_sets(inp, preamble=25):
+    """Precompute the sets of all sum available in a window of size ``preamble``.
+
+    To avoid computing the same sums several times, we insert the computed sum
+    on each impacted set, like this:
+
+      index    forward_index           index+preamble
+        V             V                      V
+    ----------------------------------------------------
+                       ^                     ^
+                        ---------------------
+                       insert sum in those sets
+    """
+
     valid_sum = [set() for i in range(len(inp))]
-    for index, num in enumerate(inp[:-preamble]):
-        for forward_index, forward_scan in enumerate(inp[index+1:index+preamble], start=index+1):
-            if num != forward_scan:
-                for validation_index in range(forward_index+1, index+preamble+1):
-                    valid_sum[validation_index].add(num+forward_scan)
+    for index, num in enumerate(inp):
+        for forward_index, forward_num in enumerate(inp[index+1:index+preamble], start=index+1):
+            if num != forward_num:
+                for validation_index in range(forward_index+1, min(index+preamble+1, len(valid_sum))):
+                    valid_sum[validation_index].add(num+forward_num)
     return valid_sum
 
 
@@ -25,6 +38,7 @@ def part_two(inp, preamble=25):
 
     current_sum = 0
     low_index = high_index = 0
+
     while low_index < len(inp):
         if current_sum == target:
             contiguous_set = inp[low_index:high_index]
