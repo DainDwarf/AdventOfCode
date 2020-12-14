@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import re
+from itertools import zip_longest
 
 
 def apply_mask(mask, num):
@@ -11,6 +12,29 @@ def apply_mask(mask, num):
     return num
 
 
+def apply_mask_v2(mask, num):
+    ret = []
+    for m, n in zip_longest(mask[::-1], bin(num)[:1:-1]):
+        if m == '0':
+            ret.append(n if n is not None else '0')
+        else:
+            ret.append(m if m is not None else '0')
+    return ''.join(reversed(ret))
+
+
+def x_gen(addr_spec):
+    def _sub_gen(current_num=0, current_index=0):
+        for i, m in enumerate(addr_spec[-1-current_index::-1], current_index):
+            if m == '1':
+                current_num += 1<<i
+            elif m == 'X':
+                yield from _sub_gen(current_num, i+1)
+                yield from _sub_gen(current_num + (1 << i), i+1)
+                return
+        yield current_num
+    return _sub_gen()
+
+
 class Bitmask:
     def __init__(self):
         self._mem = dict()
@@ -19,25 +43,34 @@ class Bitmask:
     def set_mask(self, mask):
         self._mask = mask
 
+    def write_mem(self, mem, num):
+        self._mem[mem] = apply_mask(self._mask, num)
+
     def parse_line(self, line):
         if line.startswith("mask"):
             self.set_mask(line.split(' = ')[1])
         else:
             mem, num = re.match(r"mem\[(\d+)\] = (\d+)", line).groups()
-            self._mem[int(mem)] = apply_mask(self._mask, int(num))
+            self.write_mem(int(mem), int(num))
 
-    def part_one(self, inp):
+    def sum(self, inp):
         for line in inp.split('\n'):
             self.parse_line(line)
         return sum(self._mem.values())
 
 
+class BitmaskV2(Bitmask):
+    def write_mem(self, mem, num):
+        for m in x_gen(apply_mask_v2(self._mask, mem)):
+            self._mem[m] = num
+
+
 def part_one(inp):
-    return Bitmask().part_one(inp)
+    return Bitmask().sum(inp)
 
 
 def part_two(inp):
-    pass
+    return BitmaskV2().sum(inp)
 
 
 if __name__ == '__main__':
