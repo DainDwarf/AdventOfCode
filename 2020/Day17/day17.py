@@ -53,7 +53,8 @@ class GameOfLifeND:
         count = 0
         for dpos in itertools.product(range(-1, 2), repeat=self._dim):
             if dpos != (0,)*self._dim:
-                count += int(self[tuple(x+dx for x, dx in zip(pos, dpos))])
+                search_pos = tuple(x+dx for x, dx in zip(pos, dpos))
+                count += int(self[search_pos])
         return count
 
     def next_state(self, pos):
