@@ -8,15 +8,10 @@ class InfiniteND:
         self.reset()
 
     def __getitem__(self, pos):
-        assert len(pos) == self._dim
-        if pos in self._grid:
-            return '#'
-        else:
-            return '.'
+        return pos in self._grid
 
     def __setitem__(self, pos, value):
-        assert len(pos) == self._dim
-        if value == '#':
+        if value:
             self._grid.add(pos)
         else:
             self._grid.discard(pos)
@@ -54,7 +49,7 @@ class GameOfLifeND:
         for x, line in enumerate(inp.split('\n')):
             for y, char in enumerate(line):
                 pos = (x, y) + (0,)*(self._dim-2)
-                self[pos] = char
+                self[pos] = (char=='#')
 
     def neighbors(self, pos):
         ret = []
@@ -64,17 +59,17 @@ class GameOfLifeND:
         return ret
 
     def next_state(self, pos):
-        count = len([n for n in self.neighbors(pos) if n == '#'])
-        if self[pos] == '#':
+        count = len([n for n in self.neighbors(pos) if n])
+        if self[pos]:
             if count in (2, 3):
-                return '#'
+                return True
             else:
-                return '.'
+                return False
         else:
             if count == 3:
-                return '#'
+                return True
             else:
-                return '.'
+                return False
 
     def cycle(self):
         new_grid = InfiniteND(self._dim)
