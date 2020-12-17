@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import itertools
 
 
 class InfiniteND:
@@ -28,19 +29,20 @@ class InfiniteND:
 
     @property
     def minpos(self):
-        return tuple(min(t[d] for t in self._grid) for d in range(self._dim))
+        return tuple(min((t[d] for t in self._grid), default=0) for d in range(self._dim))
 
     @property
     def maxpos(self):
-        return tuple(max(t[d] for t in self._grid) for d in range(self._dim))
+        return tuple(max((t[d] for t in self._grid), default=0) for d in range(self._dim))
 
     def reset(self):
         self._grid = set()
 
 
-class GameOfLife3D:
-    def __init__(self):
-        self._grid = InfiniteND(3)
+class GameOfLifeND:
+    def __init__(self, dimension):
+        self._dim = dimension
+        self._grid = InfiniteND(self._dim)
 
     def __getitem__(self, pos):
         return self._grid[pos]
@@ -51,16 +53,14 @@ class GameOfLife3D:
     def parse(self, inp):
         for x, line in enumerate(inp.split('\n')):
             for y, char in enumerate(line):
-                self[x, y, 0] = char
+                pos = (x, y) + (0,)*(self._dim-2)
+                self[pos] = char
 
     def neighbors(self, pos):
-        x, y, z = pos
         ret = []
-        for dx in range(-1, 2):
-            for dy in range(-1, 2):
-                for dz in range(-1, 2):
-                    if (dx, dy, dz) != (0, 0, 0):
-                        ret.append(self[x+dx, y+dy, z+dz])
+        for dpos in itertools.product(range(-1, 2), repeat=self._dim):
+            if dpos != (0,)*self._dim:
+                ret.append(self[tuple(x+dx for x, dx in zip(pos, dpos))])
         return ret
 
     def next_state(self, pos):
@@ -77,74 +77,9 @@ class GameOfLife3D:
                 return '.'
 
     def cycle(self):
-        new_grid = InfiniteND(3)
-        minx, miny, minz = self._grid.minpos
-        maxx, maxy, maxz = self._grid.maxpos
-        for x in range(minx-1, maxx+2):
-            for y in range(miny-1, maxy+2):
-                for z in range(minz-1, maxz+2):
-                    new_grid[x, y, z] = self.next_state((x, y, z))
-
-        self._grid = new_grid
-
-    def run(self, cycles):
-        for _ in range(cycles):
-            self.cycle()
-
-    def count(self):
-        return len(self._grid)
-
-
-class GameOfLife4D():
-    def __init__(self):
-        self._grid = InfiniteND(4)
-
-    def __getitem__(self, pos):
-        return self._grid[pos]
-
-    def __setitem__(self, pos, value):
-        self._grid[pos] = value
-
-    def parse(self, inp):
-        for x, line in enumerate(inp.split('\n')):
-            for y, char in enumerate(line):
-                self[x, y, 0, 0] = char
-
-    def neighbors(self, pos):
-        x, y, z, w = pos
-        ret = []
-        for dx in range(-1, 2):
-            for dy in range(-1, 2):
-                for dz in range(-1, 2):
-                    for dw in range(-1, 2):
-                        if (dx, dy, dz, dw) != (0, 0, 0, 0):
-                            ret.append(self[x+dx, y+dy, z+dz, w+dw])
-        return ret
-
-    def next_state(self, pos):
-        count = len([n for n in self.neighbors(pos) if n == '#'])
-        if self[pos] == '#':
-            if count in (2, 3):
-                return '#'
-            else:
-                return '.'
-        else:
-            if count == 3:
-                return '#'
-            else:
-                return '.'
-
-
-    def cycle(self):
-        new_grid = InfiniteND(4)
-        minx, miny, minz, minw = self._grid.minpos
-        maxx, maxy, maxz, maxw = self._grid.maxpos
-        for x in range(minx-1, maxx+2):
-            for y in range(miny-1, maxy+2):
-                for z in range(minz-1, maxz+2):
-                    for w in range(minw-1, maxw+2):
-                        new_grid[x, y, z, w] = self.next_state((x, y, z, w))
-
+        new_grid = InfiniteND(self._dim)
+        for pos in itertools.product(*(range(mind-1, maxd+2) for mind, maxd in zip(self._grid.minpos, self._grid.maxpos))):
+            new_grid[pos] = self.next_state(pos)
         self._grid = new_grid
 
     def run(self, cycles):
@@ -156,14 +91,14 @@ class GameOfLife4D():
 
 
 def part_one(inp):
-    game = GameOfLife3D()
+    game = GameOfLifeND(3)
     game.parse(inp)
     game.run(6)
     return game.count()
 
 
 def part_two(inp):
-    game = GameOfLife4D()
+    game = GameOfLifeND(4)
     game.parse(inp)
     game.run(6)
     return game.count()
