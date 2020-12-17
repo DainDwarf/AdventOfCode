@@ -1,17 +1,20 @@
 #!/usr/bin/python3
 
 
-class Infinite3D:
-    def __init__(self):
+class InfiniteND:
+    def __init__(self, dimension):
+        self._dim = dimension
         self.reset()
 
     def __getitem__(self, pos):
+        assert len(pos) == self._dim
         if pos in self._grid:
             return '#'
         else:
             return '.'
 
     def __setitem__(self, pos, value):
+        assert len(pos) == self._dim
         if value == '#':
             self._grid.add(pos)
         else:
@@ -20,35 +23,31 @@ class Infinite3D:
     def __iter__(self):
         return iter(self._grid)
 
-    @property
-    def minx(self):
-        return min(t[0] for t in self._grid)
+    def __len__(self):
+        return len(self._grid)
 
     @property
-    def maxx(self):
-        return max(t[0] for t in self._grid)
+    def minpos(self):
+        return tuple(min(t[d] for t in self._grid) for d in range(self._dim))
 
     @property
-    def miny(self):
-        return min(t[1] for t in self._grid)
-
-    @property
-    def maxy(self):
-        return max(t[1] for t in self._grid)
-
-    @property
-    def minz(self):
-        return min(t[2] for t in self._grid)
-
-    @property
-    def maxz(self):
-        return max(t[2] for t in self._grid)
+    def maxpos(self):
+        return tuple(max(t[d] for t in self._grid) for d in range(self._dim))
 
     def reset(self):
         self._grid = set()
 
 
-class GameOfLife3D(Infinite3D):
+class GameOfLife3D:
+    def __init__(self):
+        self._grid = InfiniteND(3)
+
+    def __getitem__(self, pos):
+        return self._grid[pos]
+
+    def __setitem__(self, pos, value):
+        self._grid[pos] = value
+
     def parse(self, inp):
         for x, line in enumerate(inp.split('\n')):
             for y, char in enumerate(line):
@@ -77,17 +76,16 @@ class GameOfLife3D(Infinite3D):
             else:
                 return '.'
 
-
     def cycle(self):
-        new_grid = Infinite3D()
-        for x in range(self.minx-1, self.maxx+2):
-            for y in range(self.miny-1, self.maxy+2):
-                for z in range(self.minz-1, self.maxz+2):
+        new_grid = InfiniteND(3)
+        minx, miny, minz = self._grid.minpos
+        maxx, maxy, maxz = self._grid.maxpos
+        for x in range(minx-1, maxx+2):
+            for y in range(miny-1, maxy+2):
+                for z in range(minz-1, maxz+2):
                     new_grid[x, y, z] = self.next_state((x, y, z))
 
-        self.reset()
-        for pos in new_grid:
-            self[pos] = new_grid[pos]
+        self._grid = new_grid
 
     def run(self, cycles):
         for _ in range(cycles):
@@ -97,62 +95,16 @@ class GameOfLife3D(Infinite3D):
         return len(self._grid)
 
 
-class Infinite4D:
+class GameOfLife4D():
     def __init__(self):
-        self.reset()
+        self._grid = InfiniteND(4)
 
     def __getitem__(self, pos):
-        if pos in self._grid:
-            return '#'
-        else:
-            return '.'
+        return self._grid[pos]
 
     def __setitem__(self, pos, value):
-        if value == '#':
-            self._grid.add(pos)
-        else:
-            self._grid.discard(pos)
+        self._grid[pos] = value
 
-    def __iter__(self):
-        return iter(self._grid)
-
-    @property
-    def minx(self):
-        return min(t[0] for t in self._grid)
-
-    @property
-    def maxx(self):
-        return max(t[0] for t in self._grid)
-
-    @property
-    def miny(self):
-        return min(t[1] for t in self._grid)
-
-    @property
-    def maxy(self):
-        return max(t[1] for t in self._grid)
-
-    @property
-    def minz(self):
-        return min(t[2] for t in self._grid)
-
-    @property
-    def maxz(self):
-        return max(t[2] for t in self._grid)
-
-    @property
-    def minw(self):
-        return min(t[3] for t in self._grid)
-
-    @property
-    def maxw(self):
-        return max(t[3] for t in self._grid)
-
-    def reset(self):
-        self._grid = set()
-
-
-class GameOfLife4D(Infinite4D):
     def parse(self, inp):
         for x, line in enumerate(inp.split('\n')):
             for y, char in enumerate(line):
@@ -184,16 +136,16 @@ class GameOfLife4D(Infinite4D):
 
 
     def cycle(self):
-        new_grid = Infinite3D()
-        for x in range(self.minx-1, self.maxx+2):
-            for y in range(self.miny-1, self.maxy+2):
-                for z in range(self.minz-1, self.maxz+2):
-                    for w in range(self.minw-1, self.maxw+2):
+        new_grid = InfiniteND(4)
+        minx, miny, minz, minw = self._grid.minpos
+        maxx, maxy, maxz, maxw = self._grid.maxpos
+        for x in range(minx-1, maxx+2):
+            for y in range(miny-1, maxy+2):
+                for z in range(minz-1, maxz+2):
+                    for w in range(minw-1, maxw+2):
                         new_grid[x, y, z, w] = self.next_state((x, y, z, w))
 
-        self.reset()
-        for pos in new_grid:
-            self[pos] = new_grid[pos]
+        self._grid = new_grid
 
     def run(self, cycles):
         for _ in range(cycles):
