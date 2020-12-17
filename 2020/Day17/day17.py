@@ -50,6 +50,7 @@ class GameOfLifeND:
             for y, char in enumerate(line):
                 pos = (x, y) + (0,)*(self._dim-2)
                 self[pos] = (char=='#')
+        return self
 
     def neighbors_active_count(self, pos):
         count = 0
@@ -70,27 +71,23 @@ class GameOfLifeND:
         for pos in itertools.product(*(range(mind-1, maxd+2) for mind, maxd in zip(self._grid.minpos, self._grid.maxpos))):
             new_grid[pos] = self.next_state(pos)
         self._grid = new_grid
+        return self
 
     def run(self, cycles):
         for _ in range(cycles):
             self.cycle()
+        return self
 
     def count(self):
         return len(self._grid)
 
 
 def part_one(inp):
-    game = GameOfLifeND(3)
-    game.parse(inp)
-    game.run(6)
-    return game.count()
+    return GameOfLifeND(3).parse(inp).run(6).count()
 
 
 def part_two(inp):
-    game = GameOfLifeND(4)
-    game.parse(inp)
-    game.run(6)
-    return game.count()
+    return GameOfLifeND(4).parse(inp).run(6).count()
 
 
 if __name__ == '__main__':
