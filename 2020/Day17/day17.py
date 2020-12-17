@@ -5,7 +5,7 @@ import itertools
 class InfiniteND:
     def __init__(self, dimension):
         self._dim = dimension
-        self.reset()
+        self._grid = set()
 
     def __getitem__(self, pos):
         return pos in self._grid
@@ -29,9 +29,6 @@ class InfiniteND:
     @property
     def maxpos(self):
         return tuple(max((t[d] for t in self._grid), default=0) for d in range(self._dim))
-
-    def reset(self):
-        self._grid = set()
 
 
 class GameOfLifeND:
