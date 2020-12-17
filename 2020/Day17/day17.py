@@ -51,25 +51,19 @@ class GameOfLifeND:
                 pos = (x, y) + (0,)*(self._dim-2)
                 self[pos] = (char=='#')
 
-    def neighbors(self, pos):
-        ret = []
+    def neighbors_active_count(self, pos):
+        count = 0
         for dpos in itertools.product(range(-1, 2), repeat=self._dim):
             if dpos != (0,)*self._dim:
-                ret.append(self[tuple(x+dx for x, dx in zip(pos, dpos))])
-        return ret
+                count += int(self[tuple(x+dx for x, dx in zip(pos, dpos))])
+        return count
 
     def next_state(self, pos):
-        count = len([n for n in self.neighbors(pos) if n])
+        count = self.neighbors_active_count(pos)
         if self[pos]:
-            if count in (2, 3):
-                return True
-            else:
-                return False
+            return count in (2, 3)
         else:
-            if count == 3:
-                return True
-            else:
-                return False
+            return count == 3
 
     def cycle(self):
         new_grid = InfiniteND(self._dim)
