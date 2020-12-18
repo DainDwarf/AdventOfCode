@@ -3,6 +3,9 @@ from antlr4 import CommonTokenStream, InputStream, ParseTreeWalker
 from day18Lexer import day18Lexer
 from day18Parser import day18Parser
 from day18Visitor import day18Visitor
+from day18_2Lexer import day18_2Lexer
+from day18_2Parser import day18_2Parser
+from day18_2Visitor import day18_2Visitor
 
 
 class PartOneVisitor(day18Visitor):
@@ -11,6 +14,26 @@ class PartOneVisitor(day18Visitor):
             return self.visit(ctx.expr()[0]) + self.visit(ctx.expr()[1])
         elif ctx.op.text == '*':
             return self.visit(ctx.expr()[0]) * self.visit(ctx.expr()[1])
+
+    def visitInteger(self, ctx):
+        return int(ctx.INT().getText())
+
+    def visitParentheses(self, ctx):
+        return self.visit(ctx.expr())
+
+    def visitLine(self, ctx):
+        return self.visit(ctx.expr())
+
+    def visitProg(self, ctx):
+        return sum(self.visit(l) for l in ctx.line())
+
+
+class PartTwoVisitor(day18_2Visitor):
+    def visitAddition(self, ctx):
+        return self.visit(ctx.expr()[0]) + self.visit(ctx.expr()[1])
+
+    def visitMultiplication(self, ctx):
+        return self.visit(ctx.expr()[0]) * self.visit(ctx.expr()[1])
 
     def visitInteger(self, ctx):
         return int(ctx.INT().getText())
@@ -36,7 +59,13 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    input_stream = InputStream(inp+'\n')
+    lexer = day18_2Lexer(input_stream)
+    token_stream = CommonTokenStream(lexer)
+    parser = day18_2Parser(token_stream)
+    tree = parser.prog()
+    visitor = PartTwoVisitor()
+    return visitor.visit(tree)
 
 
 if __name__ == '__main__':
