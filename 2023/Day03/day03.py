@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from collections import defaultdict
 import re
 import pytest
 
@@ -32,8 +33,7 @@ def engine_with_borders(inp):
     return engine
 
 
-def all_parts(inp):
-    engine = engine_with_borders(inp)
+def all_parts(engine):
     for i, line in enumerate(engine):
         for m in re.finditer(r"[0-9]+", line):
             neighbors = engine[i-1][m.start()-1:m.end()+1] \
@@ -43,12 +43,39 @@ def all_parts(inp):
                 yield int(m[0])
 
 
+def all_gear_parts(engine):
+    """Yields tuples (i, j, part) corresponding to each gear position (i, j) and a part number next to it.
+
+    The same coordinates (i, j) can be yield more than once, but each part will only be yield once."""
+    for i, line in enumerate(engine):
+        for m in re.finditer(r"[0-9]+", line):
+            part = int(m[0])
+            if line[m.start()-1] == '*':
+                yield (i, m.start()-1, part)
+            if line[m.end()] == '*':
+                yield (i, m.end(), part)
+            for j in range(m.start()-1, m.end()+1):
+                if engine[i-1][j] == '*':
+                    yield (i-1, j, part)
+                if engine[i+1][j] == '*':
+                    yield (i+1, j, part)
+    
+
 def part_one(inp):
-    return sum(all_parts(inp))
+    return sum(all_parts(engine_with_borders(inp)))
 
 
 def part_two(inp):
-    pass
+    engine = engine_with_borders(inp)
+    gear_groups = defaultdict(list)
+    for i, j, part in all_gear_parts(engine):
+        gear_groups[(i, j)].append(part)
+
+    ret = 0
+    for parts in gear_groups.values():
+        if len(parts) == 2:
+            ret += parts[0]*parts[1]
+    return ret
 
 
 if __name__ == '__main__':
