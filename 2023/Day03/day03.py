@@ -4,8 +4,7 @@ import pytest
 
 
 # That's handy, the Advent of Code gives unittests.
-@pytest.mark.parametrize("inp, exp", [
-    ("""467..114..
+TEST_EXAMPLE = """467..114..
 ...*......
 ..35..633.
 ......#...
@@ -14,18 +13,13 @@ import pytest
 ..592.....
 ......755.
 ...$.*....
-.664.598..""", 4361),
-])
-def test_one(inp, exp):
-    res = part_one(inp)
-    assert res == exp
+.664.598.."""
 
+def test_one():
+    assert part_one(TEST_EXAMPLE) == 4361
 
-@pytest.mark.parametrize("inp, exp", [
-])
-def test_two(inp, exp):
-    res = part_two(inp)
-    assert res == exp
+def test_two():
+    assert part_two(TEST_EXAMPLE) == 467835
 
 
 def engine_with_borders(inp):
