@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from collections import defaultdict
 import pytest
 
 
@@ -28,7 +29,6 @@ def test_one():
     assert part_one(TEST_EXAMPLE) == 13
 
 
-@pytest.mark.skip
 def test_two():
     assert part_two(TEST_EXAMPLE) == 30
 
@@ -51,7 +51,13 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    cards_pile = defaultdict(int)
+    for i, line in enumerate(inp.split('\n')):
+        cards_pile[i] += 1
+        card = line.split(':')[1]
+        for j in range(score(card)):
+            cards_pile[i+j+1] += cards_pile[i]
+    return sum(cards_pile.values())
 
 
 if __name__ == '__main__':
