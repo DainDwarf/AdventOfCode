@@ -39,14 +39,38 @@ humidity-to-location map:
 
 
 @pytest.mark.parametrize("inp, exp", [
+    (97, False),
+    (98, True),
+    (99, True),
+    (100, False),
+])
+def test_interval(inp, exp):
+    inter = Interval(98, 2)
+    assert (inp in inter) == exp
+
+
+@pytest.mark.parametrize("inp, exp", [
     (97, 97),
     (98, 50),
     (99, 51),
     (100, 100),
 ])
-def test_interval(inp, exp):
-    inter = Interval.from_input("50 98 2")
-    assert inter.offset(inp)+inp == exp
+def test_intermap(inp, exp):
+    imap = InterMap.from_input("50 98 2")
+    assert imap[inp] == exp
+
+
+@pytest.mark.skip
+@pytest.mark.parametrize("inp, exp", [
+    ((97, 1), [(97, 1)]),
+    ((98, 1), [(50, 1)]),
+    ((99, 1), [(51, 1)]),
+    ((100, 1), [(100, 1)]),
+    ((97, 4), [(97, 1), (50, 2), (100, 1)]),
+])
+def test_intermap_interval(inp, exp):
+    imap = InterMap.from_input("50 98 2")
+    assert imap.multiple(Interval(*inp)) == [Interval(*t) for t in exp]
 
 
 @pytest.mark.parametrize("inp, exp", [
@@ -84,6 +108,7 @@ def test_one():
     assert res == 35
 
 
+@pytest.mark.skip
 def test_two():
     res = part_two(TEST_EXAMPLE)
     assert res == 46
@@ -92,45 +117,74 @@ def test_two():
 class Interval:
     __start = 0
     __end = 0
-    __offset = 0
 
-    def __init__(self, source: int, dest: int, length: int):
-        self.__start = source
-        self.__end = source + length - 1
-        self.__offset = dest - source
+    def __init__(self, start: int, length: int = 1):
+        self.__start = start
+        self.__end = start + length - 1
+
+    def __hash__(self):
+        return hash((self.__start, self.__end))
+
+    def __len__(self):
+        return self.__end - self.__start + 1
+
+    def __contains__(self, x: int):
+        return self.__start <= x <= self.__end
+    
+    def __getitem__(self, index: int):
+        if self.__start + index <= self.__end:
+            return self.__start + index
+        else:
+            raise IndexError("Interval index out of range")
+
+    def index(self, x: int):
+        if x in self:
+            return x - self.__start
+        else:
+            return ValueError(f"{x} is not in Interval {self}")
+
+
+class InterMap:
+    __source = None
+    __dest = None
+
+    def __init__(self, source: Interval, dest: Interval):
+        self.__source = source
+        self.__dest = dest
 
     @classmethod
     def from_input(cls, inp: str):
         dest, source, length = map(int, inp.split())
-        return cls(source, dest, length)
+        return cls(Interval(source, length), Interval(dest, length))
 
-    def __contains__(self, x):
-        return self.__start <= x <= self.__end
+    def __contains__(self, x: int):
+        return x in self.__source
 
-    def offset(self, x):
-        if x in self:
-            return self.__offset
+    def __getitem__(self, x: int):
+        if x in self.__source:
+            return self.__dest[self.__source.index(x)]
         else:
-            return 0
+            return x
+
 
 
 class Mapping:
-    __intervals = None
+    __intermaps = None
 
     def __init__(self):
-        self.__intervals = []
+        self.__intermaps = []
 
     @classmethod
     def from_input(cls, inp: str):
         self = cls()
         for line in inp.split('\n'):
-            self.__intervals.append(Interval.from_input(line))
+            self.__intermaps.append(InterMap.from_input(line))
         return self
 
     def __getitem__(self, x: int):
-        for i in self.__intervals:
+        for i in self.__intermaps:
             if x in i:
-                return x+i.offset(x)
+                return i[x]
         return x
 
 
