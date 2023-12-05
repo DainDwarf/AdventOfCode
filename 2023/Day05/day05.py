@@ -60,7 +60,6 @@ def test_intermap(inp, exp):
     assert imap[inp] == exp
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("inp, exp", [
     ((97, 1), [(97, 1)]),
     ((98, 1), [(50, 1)]),
@@ -118,12 +117,24 @@ class Interval:
     __start = 0
     __end = 0
 
+    @property
+    def start(self): return self.__start
+
+    @property
+    def end(self): return self.__end
+
     def __init__(self, start: int, length: int = 1):
         self.__start = start
         self.__end = start + length - 1
 
     def __hash__(self):
         return hash((self.__start, self.__end))
+
+    def __repr__(self):
+        return f"({self.__start}, {self.__end})"
+
+    def __eq__(self, other):
+        return self.start == other.start and self.end == other.end
 
     def __len__(self):
         return self.__end - self.__start + 1
@@ -166,6 +177,24 @@ class InterMap:
         else:
             return x
 
+    def multiple(self, inter: Interval):
+        """Translate an input interval into a list of intervals according to the translation table."""
+        if inter.end < self.__source.start:
+            return [inter]
+        elif inter.start > self.__source.end:
+            return [inter]
+        else: # There is an intersection somewhere
+            ret = []
+            if inter.start < self.__source.start: # Some untouched left part
+                ret.append(Interval(inter.start, self.__source.start-inter.start))
+            # Middle part
+            mid_start = max(inter.start, self.__source.start)
+            mid_end = min(inter.end, self.__source.end)
+            length = mid_end-mid_start+1
+            ret.append(Interval(self[mid_start], length))
+            if inter.end > self.__source.end: # Some untouched right part
+                ret.append(Interval(self.__source.end+1, inter.end-self.__source.end))
+            return ret
 
 
 class Mapping:
