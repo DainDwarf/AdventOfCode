@@ -3,6 +3,41 @@ import pytest
 
 
 # That's handy, the Advent of Code gives unittests.
+TEST_EXAMPLE = """seeds: 79 14 55 13
+
+seed-to-soil map:
+50 98 2
+52 50 48
+
+soil-to-fertilizer map:
+0 15 37
+37 52 2
+39 0 15
+
+fertilizer-to-water map:
+49 53 8
+0 11 42
+42 0 7
+57 7 4
+
+water-to-light map:
+88 18 7
+18 25 70
+
+light-to-temperature map:
+45 77 23
+81 45 19
+68 64 13
+
+temperature-to-humidity map:
+0 69 1
+1 0 69
+
+humidity-to-location map:
+60 56 37
+56 93 4"""
+
+
 @pytest.mark.parametrize("inp, exp", [
     (97, 97),
     (98, 50),
@@ -23,6 +58,30 @@ def test_interval(inp, exp):
 def test_mapping(inp, exp):
     mapp = Mapping.from_input("50 98 2\n52 50 48")
     assert mapp[inp] == exp
+
+
+@pytest.mark.parametrize("inp, exp", [
+    (79, 82),
+    (14, 43),
+    (55, 86),
+    (13, 35),
+])
+def test_pathing(inp, exp):
+    mappings_inp = TEST_EXAMPLE.split('\n', 2)[-1]
+    pathing = all_mappings(mappings_inp)
+    x = inp
+    fro = ''
+    to = 'seed'
+    while to in pathing:
+        fro = to
+        to, mapp = pathing[to]
+        x = mapp[x]
+    assert x == exp
+
+
+def test_one():
+    res = part_one(TEST_EXAMPLE)
+    assert res == 35
 
 
 @pytest.mark.parametrize("inp, exp", [
@@ -77,8 +136,30 @@ class Mapping:
         return x
 
 
+def all_mappings(mappings_inp):
+    """Returns a dict that maps an input category to a tuple (destination category, Mapping)"""
+    ret = {}
+    for block in mappings_inp.split('\n\n'):
+        name, desc = block.split('\n', 1)
+        fro, _, to = name.split()[0].split('-')
+        ret[fro] = (to, Mapping.from_input(desc))
+    return ret
+
+
 def part_one(inp):
-    pass
+    seeds_inp, mappings_inp = inp.split('\n\n', 1)
+    pathing = all_mappings(mappings_inp)
+    seeds = [int(x) for x in seeds_inp.split(':')[1].split()]
+    locations = []
+    for x in seeds:
+        fro = ''
+        to = 'seed'
+        while to in pathing:
+            fro = to
+            to, mapp = pathing[to]
+            x = mapp[x]
+        locations.append(x)
+    return min(locations)
 
 
 def part_two(inp):
