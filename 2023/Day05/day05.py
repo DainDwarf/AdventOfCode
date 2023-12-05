@@ -85,10 +85,9 @@ def test_intermap(inp, exp):
 ])
 def test_intermap_interval(inp, exp):
     imap = InterMap.from_input("50 98 2")
-    assert imap.multiple(Interval(*inp)) == [Interval(*t) for t in exp]
+    assert imap.multiple([Interval(*inp)]) == [Interval(*t) for t in exp]
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("inp, exp", [
     (79, 81),
     (14, 14),
@@ -124,7 +123,6 @@ def test_one():
     assert res == 35
 
 
-@pytest.mark.skip
 def test_two():
     res = part_two(TEST_EXAMPLE)
     assert res == 46
@@ -182,12 +180,20 @@ class Interval:
         assert inter1.intersect(inter2)
         return cls(min(inter1.start, inter2.start), max(inter1.end, inter2.end))
 
+    @classmethod
+    def intersection(cls, inter1, inter2):
+        assert inter1.intersect(inter2)
+        return cls(max(inter1.start, inter2.start), min(inter1.end, inter2.end))
+
 
 class InterList:
     __intervals = None
 
-    def __init__(self):
+    def __init__(self, init_list = None):
         self.__intervals = set()
+        if init_list is not None:
+            for i in init_list:
+                self.add(i)
 
     def add(self, new: Interval):
         overlap = None
@@ -228,6 +234,14 @@ class InterMap:
         self.__source = source
         self.__dest = dest
 
+    @property
+    def source(self):
+        return self.__source
+
+    @property
+    def dest(self):
+        return self.__dest
+
     @classmethod
     def from_input(cls, inp: str):
         dest, source, length = map(int, inp.split())
@@ -262,6 +276,24 @@ class Mapping:
                 return i[x]
         return x
 
+    def multiple(self, intervals: InterList):
+        ret = InterList(intervals)
+        translated = []
+
+        for imap in self.__intermaps:
+            for inter in intervals:
+                if imap.source.intersect(inter):
+                    section = Interval.intersection(imap.source, inter)
+                    ret.cut(imap.source)
+                    translated.append(Interval(imap[section.start], imap[section.end]))
+
+        for new in translated:
+            ret.add(new)
+
+        return ret
+
+
+
 
 def all_mappings(mappings_inp):
     """Returns a dict that maps an input category to a tuple (destination category, Mapping)"""
@@ -295,28 +327,15 @@ def part_two(inp):
 
     pathing = all_mappings(mappings_inp)
     seeds_intervals = [Interval(s, s+r-1) for s, r in batched(map(int, seeds_inp), n=2)]
+    seeds_intervals = InterList(seeds_intervals)
 
     fro = ''
     to = 'seed'
 
-    print(to)
-    for s in sorted(seeds_intervals, key= lambda s:s.start):
-        print(s)
-    print('\n\n')
-
     while to in pathing:
         fro = to
         to, mapp = pathing[to]
-        new_intervals = []
-        for inter in seeds_intervals:
-            new_intervals += mapp.multiple(inter)
-        seeds_intervals = new_intervals
-
-        print(to)
-        for s in sorted(seeds_intervals, key= lambda s:s.start):
-            print(s)
-        print('\n\n')
-
+        seeds_intervals = mapp.multiple(seeds_intervals)
     return min(i.start for i in seeds_intervals)
 
 
