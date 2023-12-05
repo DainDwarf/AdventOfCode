@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from itertools import batched
 import pytest
 
 
@@ -45,7 +46,7 @@ humidity-to-location map:
     (100, False),
 ])
 def test_interval(inp, exp):
-    inter = Interval(98, 2)
+    inter = Interval(98, 99)
     assert (inp in inter) == exp
 
 
@@ -61,11 +62,11 @@ def test_intermap(inp, exp):
 
 
 @pytest.mark.parametrize("inp, exp", [
-    ((97, 1), [(97, 1)]),
-    ((98, 1), [(50, 1)]),
-    ((99, 1), [(51, 1)]),
-    ((100, 1), [(100, 1)]),
-    ((97, 4), [(97, 1), (50, 2), (100, 1)]),
+    ((97, 97), [(97, 97)]),
+    ((98, 98), [(50, 50)]),
+    ((99, 99), [(51, 51)]),
+    ((100, 100), [(100, 100)]),
+    ((97, 100), [(97, 97), (50, 51), (100, 100)]),
 ])
 def test_intermap_interval(inp, exp):
     imap = InterMap.from_input("50 98 2")
@@ -107,7 +108,6 @@ def test_one():
     assert res == 35
 
 
-@pytest.mark.skip
 def test_two():
     res = part_two(TEST_EXAMPLE)
     assert res == 46
@@ -123,9 +123,9 @@ class Interval:
     @property
     def end(self): return self.__end
 
-    def __init__(self, start: int, length: int = 1):
+    def __init__(self, start: int, end: int):
         self.__start = start
-        self.__end = start + length - 1
+        self.__end = end
 
     def __hash__(self):
         return hash((self.__start, self.__end))
@@ -166,7 +166,7 @@ class InterMap:
     @classmethod
     def from_input(cls, inp: str):
         dest, source, length = map(int, inp.split())
-        return cls(Interval(source, length), Interval(dest, length))
+        return cls(Interval(source, source+length-1), Interval(dest, dest+length-1))
 
     def __contains__(self, x: int):
         return x in self.__source
@@ -186,14 +186,13 @@ class InterMap:
         else: # There is an intersection somewhere
             ret = []
             if inter.start < self.__source.start: # Some untouched left part
-                ret.append(Interval(inter.start, self.__source.start-inter.start))
+                ret.append(Interval(inter.start, self.__source.start-1))
             # Middle part
             mid_start = max(inter.start, self.__source.start)
             mid_end = min(inter.end, self.__source.end)
-            length = mid_end-mid_start+1
-            ret.append(Interval(self[mid_start], length))
+            ret.append(Interval(self[mid_start], self[mid_end]))
             if inter.end > self.__source.end: # Some untouched right part
-                ret.append(Interval(self.__source.end+1, inter.end-self.__source.end))
+                ret.append(Interval(self.__source.end+1, inter.end))
             return ret
 
 
@@ -244,7 +243,22 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    seeds_inp, mappings_inp = inp.split('\n\n', 1)
+    seeds_inp = seeds_inp.split(':')[1].split()
+
+    pathing = all_mappings(mappings_inp)
+    seeds_intervals = [Interval(s, s+r-1) for s, r in batched(map(int, seeds_inp), n=2)]
+
+    fro = ''
+    to = 'seed'
+    while to in pathing:
+        fro = to
+        to, mapp = pathing[to]
+        new_intervals = []
+        for inter in seeds_intervals:
+            new_intervals += mapp.multiple(inter)
+        seeds_intervals = new_intervals
+    return min(i.start for i in seeds_intervals)
 
 
 if __name__ == '__main__':
