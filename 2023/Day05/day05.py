@@ -84,11 +84,9 @@ def test_one():
     assert res == 35
 
 
-@pytest.mark.parametrize("inp, exp", [
-])
-def test_two(inp, exp):
-    res = part_two(inp)
-    assert res == exp
+def test_two():
+    res = part_two(TEST_EXAMPLE)
+    assert res == 46
 
 
 class Interval:
