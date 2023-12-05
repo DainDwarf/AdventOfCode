@@ -133,6 +133,9 @@ class Interval:
     def __repr__(self):
         return f"({self.__start}, {self.__end})"
 
+    def __str__(self):
+        return f"({self.__start}, {self.__end})"
+
     def __eq__(self, other):
         return self.start == other.start and self.end == other.end
 
@@ -153,6 +156,14 @@ class Interval:
             return x - self.__start
         else:
             return ValueError(f"{x} is not in Interval {self}")
+
+    def intersect(self, other):
+        return self.start <= other.end and self.end >= other.start
+
+    @classmethod
+    def union(cls, inter1, inter2):
+        assert inter1.intersect(inter2)
+        return cls(min(inter1.start, inter2.start), max(inter1.end, inter2.end))
 
 
 class InterMap:
@@ -179,11 +190,9 @@ class InterMap:
 
     def multiple(self, inter: Interval):
         """Translate an input interval into a list of intervals according to the translation table."""
-        if inter.end < self.__source.start:
+        if not self.__source.intersect(inter):
             return [inter]
-        elif inter.start > self.__source.end:
-            return [inter]
-        else: # There is an intersection somewhere
+        else:
             ret = []
             if inter.start < self.__source.start: # Some untouched left part
                 ret.append(Interval(inter.start, self.__source.start-1))
@@ -194,6 +203,9 @@ class InterMap:
             if inter.end > self.__source.end: # Some untouched right part
                 ret.append(Interval(self.__source.end+1, inter.end))
             return ret
+
+    def intersect(self, inter: Interval):
+        return self.__source.intersect(inter)
 
 
 class Mapping:
@@ -214,6 +226,12 @@ class Mapping:
             if x in i:
                 return i[x]
         return x
+
+    def multiple(self, inter: Interval):
+        for m in self.__intermaps:
+            if m.intersect(inter):
+                return m.multiple(inter)
+        return [inter]
 
 
 def all_mappings(mappings_inp):
@@ -251,6 +269,12 @@ def part_two(inp):
 
     fro = ''
     to = 'seed'
+
+    print(to)
+    for s in sorted(seeds_intervals, key= lambda s:s.start):
+        print(s)
+    print('\n\n')
+
     while to in pathing:
         fro = to
         to, mapp = pathing[to]
@@ -258,6 +282,12 @@ def part_two(inp):
         for inter in seeds_intervals:
             new_intervals += mapp.multiple(inter)
         seeds_intervals = new_intervals
+
+        print(to)
+        for s in sorted(seeds_intervals, key= lambda s:s.start):
+            print(s)
+        print('\n\n')
+
     return min(i.start for i in seeds_intervals)
 
 
