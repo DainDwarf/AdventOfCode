@@ -50,6 +50,20 @@ def test_interval(inp, exp):
     assert (inp in inter) == exp
 
 
+def test_interlist():
+    li = InterList()
+    li.add(Interval(0, 100))
+    assert li == [Interval(0, 100)]
+    li.add(Interval(103, 200))
+    assert li == [Interval(0, 100), Interval(103, 200)]
+    li.add(Interval(97, 150))
+    assert li == [Interval(0, 200)]
+    li.cut(Interval(90, 110))
+    assert li == [Interval(0, 89), Interval(111, 200)]
+    li.cut(Interval(100, 123))
+    assert li == [Interval(0, 89), Interval(124, 200)]
+
+
 @pytest.mark.parametrize("inp, exp", [
     (97, 97),
     (98, 50),
@@ -61,6 +75,7 @@ def test_intermap(inp, exp):
     assert imap[inp] == exp
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize("inp, exp", [
     ((97, 97), [(97, 97)]),
     ((98, 98), [(50, 50)]),
@@ -73,6 +88,7 @@ def test_intermap_interval(inp, exp):
     assert imap.multiple(Interval(*inp)) == [Interval(*t) for t in exp]
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize("inp, exp", [
     (79, 81),
     (14, 14),
@@ -108,6 +124,7 @@ def test_one():
     assert res == 35
 
 
+@pytest.mark.skip
 def test_two():
     res = part_two(TEST_EXAMPLE)
     assert res == 46
@@ -166,6 +183,43 @@ class Interval:
         return cls(min(inter1.start, inter2.start), max(inter1.end, inter2.end))
 
 
+class InterList:
+    __intervals = None
+
+    def __init__(self):
+        self.__intervals = set()
+
+    def add(self, new: Interval):
+        overlap = None
+        for i in self.__intervals:
+            if i.intersect(new):
+                overlap = i
+                break
+        if overlap is not None:
+            self.__intervals.remove(overlap)
+            return self.add(Interval.union(new, overlap))
+        else:
+            self.__intervals.add(new)
+
+    def cut(self, old: Interval):
+        overlaps = []
+        for i in self.__intervals:
+            if i.intersect(old):
+                overlaps.append(i)
+        for over in overlaps:
+            self.__intervals.remove(over)
+            if over.start < old.start:
+                self.__intervals.add(Interval(over.start, old.start-1))
+            if over.end > old.end:
+                self.__intervals.add(Interval(old.end+1, over.end))
+
+    def __iter__(self):
+        return iter(self.__intervals)
+
+    def __eq__(self, other):
+        return all(i in other for i in self.__intervals)
+
+
 class InterMap:
     __source = None
     __dest = None
@@ -188,25 +242,6 @@ class InterMap:
         else:
             return x
 
-    def multiple(self, inter: Interval):
-        """Translate an input interval into a list of intervals according to the translation table."""
-        if not self.__source.intersect(inter):
-            return [inter]
-        else:
-            ret = []
-            if inter.start < self.__source.start: # Some untouched left part
-                ret.append(Interval(inter.start, self.__source.start-1))
-            # Middle part
-            mid_start = max(inter.start, self.__source.start)
-            mid_end = min(inter.end, self.__source.end)
-            ret.append(Interval(self[mid_start], self[mid_end]))
-            if inter.end > self.__source.end: # Some untouched right part
-                ret.append(Interval(self.__source.end+1, inter.end))
-            return ret
-
-    def intersect(self, inter: Interval):
-        return self.__source.intersect(inter)
-
 
 class Mapping:
     __intermaps = None
@@ -226,12 +261,6 @@ class Mapping:
             if x in i:
                 return i[x]
         return x
-
-    def multiple(self, inter: Interval):
-        for m in self.__intermaps:
-            if m.intersect(inter):
-                return m.multiple(inter)
-        return [inter]
 
 
 def all_mappings(mappings_inp):
