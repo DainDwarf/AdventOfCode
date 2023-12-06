@@ -6,33 +6,38 @@ import pytest
 def mul(iterable):
     return reduce(operator.mul, iterable, 1)
 
+# That's handy, the Advent of Code gives unittests.
 TEST_EXAMPLE = """
 Time:      7  15   30
 Distance:  9  40  200""".strip()
 
-# That's handy, the Advent of Code gives unittests.
 @pytest.mark.parametrize("inp, exp", [
     ((7, 9), 4),
     ((15, 40), 8),
     ((30, 200), 9),
+    ((71530, 940200), 71503),
 ])
 def test_count_better(inp, exp):
     assert count_better(*inp) == exp
+
 
 def test_one():
     assert part_one(TEST_EXAMPLE) == 288
 
 
-@pytest.mark.parametrize("inp, exp", [
-])
-def test_two(inp, exp):
-    res = part_two(inp)
-    assert res == exp
+def test_two():
+    assert part_two(TEST_EXAMPLE) == 71503
 
 
 def count_better(time, distance):
-    """Not even doing math for this one yet."""
-    return sum(i*(time-i) > distance for i in range(time))
+    """Return the number of possible times we can press the button to beat the given distance.
+
+    Since the distance is symmetric according to time, we can find the first time we beat the
+    score and just compute the inner interval that will beat the distance."""
+    for i in range(time):
+        if i*(time-i) > distance:
+            break
+    return time-2*i+1
 
 
 def part_one(inp):
@@ -43,7 +48,10 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    time, distance = inp.split('\n')
+    time = int(time.replace(' ', '').split(':')[1])
+    distance = int(distance.replace(' ', '').split(':')[1])
+    return count_better(time, distance)
 
 
 if __name__ == '__main__':
