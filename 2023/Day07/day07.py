@@ -16,27 +16,25 @@ def test_one():
 
 
 def test_two():
-    assert part_two(TEST_EXAMPLE) == None
+    assert part_two(TEST_EXAMPLE) == 5905
 
 
-cards_value = {
-    '2': 2, 
-    '3': 3, 
-    '4': 4, 
-    '5': 5, 
-    '6': 6, 
-    '7': 7, 
-    '8': 8, 
-    '9': 9, 
-    'T': 10, 
-    'J': 11, 
-    'Q': 12, 
-    'K': 13, 
-    'A': 14, 
-}
-
-
-def sorting_key(hand):
+def sorting_one(hand):
+    cards_value = {
+        '2': 2, 
+        '3': 3, 
+        '4': 4, 
+        '5': 5, 
+        '6': 6, 
+        '7': 7, 
+        '8': 8, 
+        '9': 9, 
+        'T': 10, 
+        'J': 11, 
+        'Q': 12, 
+        'K': 13, 
+        'A': 14, 
+    }
     hand_values = [cards_value[c] for c in hand]
     groups = sorted(Counter(hand).values(), reverse=True)
     main_group = groups[0]
@@ -45,21 +43,51 @@ def sorting_key(hand):
     return key
 
 
-def part_one(inp):
+def sorting_two(hand):
+    """To account for jokers, simply add the joker group to the biggest group."""
+    cards_value = {
+        'J': 1, 
+        '2': 2, 
+        '3': 3, 
+        '4': 4, 
+        '5': 5, 
+        '6': 6, 
+        '7': 7, 
+        '8': 8, 
+        '9': 9, 
+        'T': 10, 
+        'Q': 11, 
+        'K': 12, 
+        'A': 13, 
+    }
+    hand_values = [cards_value[c] for c in hand]
+    groups = Counter(hand)
+    jokers = groups.pop('J', 0)
+    groups = sorted(groups.values(), reverse=True)
+    main_group = groups[0] if groups else 0
+    main_group += jokers
+    secondary_group = groups[1] if len(groups) > 1 else 1
+    key = (main_group, secondary_group, *hand_values)
+    return key
+
+
+def winnings(inp, key):
     hands = []
     for line in inp.split('\n'):
         hand, bid = line.split()
         hands.append((hand, int(bid)))
 
     ret = 0
-    for rank, (hand, bid) in enumerate(sorted(hands, key=lambda t: sorting_key(t[0])), 1):
+    for rank, (hand, bid) in enumerate(sorted(hands, key=lambda t: key(t[0])), 1):
         ret += rank*bid
     return ret
 
+def part_one(inp):
+    return winnings(inp, key=sorting_one)
 
 
 def part_two(inp):
-    pass
+    return winnings(inp, key=sorting_two)
 
 
 if __name__ == '__main__':
