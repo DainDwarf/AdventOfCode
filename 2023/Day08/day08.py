@@ -87,6 +87,7 @@ def part_two(inp):
     print(second_Z)
     cycle_lengths = [s-f for f, s in zip(first_Z, second_Z)]
     print(cycle_lengths)
+    assert cycle_lengths == first_Z
     return math.lcm(*cycle_lengths)
 
 
