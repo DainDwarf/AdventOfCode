@@ -20,6 +20,17 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"""
 
+TEST_EXAMPLE_3 = """LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)"""
+
 def test_one_1():
     assert part_one(TEST_EXAMPLE_1) == 2
 
@@ -27,10 +38,11 @@ def test_one_2():
     assert part_one(TEST_EXAMPLE_2) == 6
 
 def test_two():
-    assert part_two(TEST_EXAMPLE_2) == None
+    assert part_two(TEST_EXAMPLE_2) == 6
 
 
-def part_one(inp):
+def parse_input(inp):
+    """Return the pattern to follow and the mapping of nodes."""
     pattern, lines = inp.split('\n\n')
     pattern = [1 if c == 'R' else 0 for c in pattern]
     mapping = dict()
@@ -38,6 +50,11 @@ def part_one(inp):
         node, tup = line.split(' = ')
         left, right = tup.strip('()').split(', ')
         mapping[node] = (left, right)
+    return pattern, mapping
+
+
+def part_one(inp):
+    pattern, mapping = parse_input(inp)
 
     pos = 'AAA'
     for step, direction in enumerate(cycle(pattern), 1):
@@ -49,7 +66,16 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    pattern, mapping = parse_input(inp)
+
+    all_pos = [p for p in mapping.keys() if p[-1] == 'A']
+    for step, direction in enumerate(cycle(pattern), 1):
+        all_pos = [mapping[p][direction] for p in all_pos]
+        if all(p[-1] == 'Z' for p in all_pos):
+            break
+
+    return step
+
 
 
 if __name__ == '__main__':
