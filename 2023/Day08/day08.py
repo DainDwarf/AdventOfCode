@@ -83,10 +83,11 @@ def part_two(inp):
         if all(x != 0 for x in second_Z):
             break
 
-    print(first_Z)
-    print(second_Z)
     cycle_lengths = [s-f for f, s in zip(first_Z, second_Z)]
-    print(cycle_lengths)
+    # In the general case, the 'Z' node could not have the same behavior
+    # than the 'A' node, resulting in extra steps to fall into each cycles.
+    # However, it seems AoC is kind today and we don't need that extra steps counting.
+    # Making sure it works with an assert, though.
     assert cycle_lengths == first_Z
     return math.lcm(*cycle_lengths)
 
