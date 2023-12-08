@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from itertools import cycle
+import math
 import pytest
 
 
@@ -38,7 +39,7 @@ def test_one_2():
     assert part_one(TEST_EXAMPLE_2) == 6
 
 def test_two():
-    assert part_two(TEST_EXAMPLE_2) == 6
+    assert part_two(TEST_EXAMPLE_3) == 6
 
 
 def parse_input(inp):
@@ -69,12 +70,24 @@ def part_two(inp):
     pattern, mapping = parse_input(inp)
 
     all_pos = [p for p in mapping.keys() if p[-1] == 'A']
+    first_Z = [0]*len(all_pos)
+    second_Z = [0]*len(all_pos)
     for step, direction in enumerate(cycle(pattern), 1):
         all_pos = [mapping[p][direction] for p in all_pos]
-        if all(p[-1] == 'Z' for p in all_pos):
+        for i, p in enumerate(all_pos):
+            if p[-1] == 'Z':
+                if first_Z[i] == 0:
+                    first_Z[i] = step
+                elif second_Z[i] == 0:
+                    second_Z[i] = step
+        if all(x != 0 for x in second_Z):
             break
 
-    return step
+    print(first_Z)
+    print(second_Z)
+    cycle_lengths = [s-f for f, s in zip(first_Z, second_Z)]
+    print(cycle_lengths)
+    return math.lcm(*cycle_lengths)
 
 
 
