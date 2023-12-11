@@ -25,82 +25,41 @@ TEST_EXAMPLE = """
 def test_distance(inp, exp):
     assert distance(*inp) == exp
 
-def test_one():
-    assert part_one(TEST_EXAMPLE) == 374
-
-
-@pytest.mark.parametrize("inp, exp", [
+@pytest.mark.parametrize("expansion, result", [
+    (2, 374),
+    (10, 1030),
+    (100, 8410),
 ])
-def test_two(inp, exp):
-    res = part_two(inp)
-    assert res == exp
+def test_expansion(expansion, result):
+    assert compute_distances(TEST_EXAMPLE, expansion) == result
 
 
 class SpaceMap:
     mapping = None
+    expansion = 1
+    _empty_lines = None
+    _empty_columns = None
 
     def __init__(self, inp):
-        self.mapping = [list(l) for l in inp.split('\n')]
-
-    def line(self, i):
-        return self.mapping[i][:]
-
-    def column(self, j):
-        return [line[j] for line in self.mapping]
-
-    def len_lines(self):
-        return len(self.mapping[0])
-
-    def len_columns(self):
-        return len(self.mapping)
-
-    def iter_lines(self):
-        for i in range(len(self.mapping)):
-            yield self.line(i)
-
-    def iter_columns(self):
+        self.mapping = [l for l in inp.split('\n')]
+        self._empty_lines = []
+        for i, line in enumerate(self.mapping):
+            if all(c == '.' for c in line):
+                self._empty_lines.append(i)
+        self._empty_columns = []
         for j in range(len(self.mapping[0])):
-            yield self.column(j)
-
-    def insert_line(self, i, new_line):
-        assert len(new_line) == len(self.mapping[0])
-        self.mapping.insert(i, list(new_line))
-
-    def insert_column(self, j, new_column):
-        assert len(new_column) == len(self.mapping)
-        for line, char in zip(self.mapping, new_column):
-            line.insert(j, char)
+            if all(line[j] == '.' for line in self.mapping):
+                self._empty_columns.append(j)
 
     def search_all(self, char):
         ret = []
         for i, line in enumerate(self.mapping):
             for j, c in enumerate(line):
                 if c == char:
-                    ret.append((i, j))
+                    expand_i = sum(self.expansion if x in self._empty_lines else 1 for x in range(i+1))
+                    expand_j = sum(self.expansion if x in self._empty_columns else 1 for x in range(j+1))
+                    ret.append((expand_i, expand_j))
         return ret
-
-    def __str__(self):
-        return '\n'.join(''.join(l) for l in self.mapping)
-
-
-def expand_space(space):
-    empty_lines = []
-    for i, line in enumerate(space.iter_lines()):
-        if all(c == '.' for c in line):
-            empty_lines.append(i)
-
-    empty_columns = []
-    for j, col in enumerate(space.iter_columns()):
-        if all(c == '.' for c in col):
-            empty_columns.append(j)
-
-    # TODO: Remove that bad hack: to avoid inserting in the wrong index,
-    # since all index after insertion are moved,
-    # insert them in reverse order.
-    for i in reversed(empty_lines):
-        space.insert_line(i, '.'*space.len_lines())
-    for j in reversed(empty_columns):
-        space.insert_column(j, '.'*space.len_columns())
 
 
 def distance(p1, p2):
@@ -108,15 +67,18 @@ def distance(p1, p2):
     return abs(p2[0]-p1[0])+abs(p2[1]-p1[1])
 
 
-def part_one(inp):
+def compute_distances(inp, expansion):
     space = SpaceMap(inp)
-    expand_space(space)
+    space.expansion = expansion
     galaxies = space.search_all('#')
     return sum(distance(g1, g2) for g1, g2 in combinations(galaxies, 2))
 
+def part_one(inp):
+    return compute_distances(inp, 2)
+
 
 def part_two(inp):
-    pass
+    return compute_distances(inp, 1000000)
 
 
 if __name__ == '__main__':
