@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from itertools import combinations
 import re
 import pytest
 
@@ -26,20 +27,20 @@ def group_lengths(line, char='#'):
 def count_arrangements(line):
     line, groups = line.split(' ')
     groups = [int(x) for x in groups.split(',')]
-    dots_number = len(line) - sum(groups)
 
     # Iterate through all dots repartitions possible and count valid matches.
     # TODO: Choose between dots or sharp repartitions depending on what is smaller
-    liberties = dots_number - line.count('.')
+    dots_count = len(line) - sum(groups)
+    liberties = dots_count - line.count('.')
+    qmark_positions = [i for i, c in enumerate(line) if c == '?']
 
     ret = 0
-    count = line.count('?')
-    for repartition in range(2**count):
-        test_line = line
-        repartition = [int(b) for b in f"{repartition:0>{count}b}"]
-        for bit in repartition:
-            test_line = test_line.replace('?', '.' if bit else '#', 1)
-        if group_lengths(test_line) == groups:
+    for repartition in combinations(qmark_positions, liberties):
+        test_line = list(line)
+        for i, c in enumerate(test_line):
+            if c == '?':
+                test_line[i] = '.' if i in repartition else '#'
+        if group_lengths(''.join(test_line)) == groups:
             ret += 1
     return ret
 
