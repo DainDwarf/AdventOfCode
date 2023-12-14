@@ -19,7 +19,6 @@ O.#..O.#.#
 def test_one():
     assert part_one(TEST_EXAMPLE) == 136
 
-@pytest.mark.skip
 def test_two():
     assert part_two(TEST_EXAMPLE) == 64
 
@@ -146,12 +145,34 @@ class Platform:
 def part_one(inp):
     plat = Platform(inp)
     plat.tilt(Direction.UP)
-    print(plat)
     return plat.load(Direction.UP)
 
 
 def part_two(inp):
-    pass
+    print("Even with a shortcut detection, this might take a few seconds. Please be patient.")
+    plat = Platform(inp)
+    snapshots = []
+    i = 0
+    target = 1000000000
+    cycle_length = None
+    while i < target:
+        if cycle_length is None:
+            if str(plat) not in snapshots:
+                i += 1
+                snapshots.append(str(plat))
+                for d in CYCLE:
+                    plat.tilt(d)
+            else: # Cycle detected, time to shortcut the remaining steps
+                cycle_length = snapshots[::-1].index(str(plat)) + 1
+                i += cycle_length*((target-i)//cycle_length)
+        else: # Continue after shortcutting to reach exactly the target
+            i += 1
+            for d in CYCLE:
+                plat.tilt(d)
+
+    return plat.load(Direction.UP)
+
+
 
 
 if __name__ == '__main__':
