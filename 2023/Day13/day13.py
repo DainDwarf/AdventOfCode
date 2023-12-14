@@ -29,21 +29,31 @@ def test_horizontal_reflexion():
     assert horizontal_reflexion(TEST_EXAMPLE_1) == 0
     assert horizontal_reflexion(TEST_EXAMPLE_2) == 4
 
+def test_smudge():
+    assert horizontal_reflexion(TEST_EXAMPLE_1, 1) == 3
+    assert horizontal_reflexion(TEST_EXAMPLE_2, 1) == 1
+
 
 def transpose(lines):
     """Returns a new list of lines that is the transposed of input"""
     return list(map(str, zip(*lines)))
 
 
-def vertical_reflexion(block):
+def diffs_count(line1, line2):
+    return sum(c1 != c2 for c1, c2 in zip(line1, line2))
+
+
+def vertical_reflexion(block, smudges = 0):
     lines = transpose(block.split('\n'))
     return horizontal_reflexion('\n'.join(lines))
 
 
-def horizontal_reflexion(block):
+def horizontal_reflexion(block, smudges = 0):
     lines = block.split('\n')
-    for i in range(len(lines)):
-        if all(up == down for up, down in zip(lines[i-1::-1], lines[i:])):
+    for i in range(1, len(lines)):
+        if smudges == sum(diffs_count(up, down) \
+                for up, down in zip(lines[i-1::-1], lines[i:])
+        ):
             return i
     return 0
 
@@ -56,7 +66,10 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    ret = 0
+    for block in inp.split('\n\n'):
+        ret += 100*horizontal_reflexion(block, 1)+vertical_reflexion(block, 1)
+    return ret
 
 
 if __name__ == '__main__':
