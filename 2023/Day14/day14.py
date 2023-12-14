@@ -136,9 +136,10 @@ class Platform:
 
     def load(self, direction):
         ret = 0
-        if direction == Direction.UP:
-            for weight, line in enumerate(self.board[::-1]):
-                ret += line.count('O')*weight
+        modulus = -1 + (self.height if direction in (Direction.UP, Direction.DOWN) else self.length)
+        for i, pos in enumerate(self.iter_position(direction)):
+            if self[pos] == 'O':
+                ret += i % modulus
         return ret
 
 
