@@ -21,6 +21,8 @@ TEST_EXAMPLE_2 = """
 ..##..###
 #....#..#""".strip()
 
+TEST_FULL = '\n\n'.join((TEST_EXAMPLE_1, TEST_EXAMPLE_2))
+
 def test_vertical_reflexion():
     assert vertical_reflexion(TEST_EXAMPLE_1) == 5
     assert vertical_reflexion(TEST_EXAMPLE_2) == 0
@@ -33,6 +35,11 @@ def test_smudge():
     assert horizontal_reflexion(TEST_EXAMPLE_1, 1) == 3
     assert horizontal_reflexion(TEST_EXAMPLE_2, 1) == 1
 
+def test_part_one():
+    assert part_one(TEST_FULL) == 405
+
+def test_part_two():
+    assert part_two(TEST_FULL) == 400
 
 def transpose(lines):
     """Returns a new list of lines that is the transposed of input"""
@@ -45,7 +52,7 @@ def diffs_count(line1, line2):
 
 def vertical_reflexion(block, smudges = 0):
     lines = transpose(block.split('\n'))
-    return horizontal_reflexion('\n'.join(lines))
+    return horizontal_reflexion('\n'.join(lines), smudges)
 
 
 def horizontal_reflexion(block, smudges = 0):
