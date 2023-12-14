@@ -19,6 +19,30 @@ O.#..O.#.#
 def test_one():
     assert part_one(TEST_EXAMPLE) == 136
 
+@pytest.mark.skip
+def test_two():
+    assert part_two(TEST_EXAMPLE) == 64
+
+def test_cycles():
+    plat = Platform(TEST_EXAMPLE)
+    for d in CYCLE:
+        plat.tilt(d)
+    assert plat.load(Direction.UP) == 87
+    for d in CYCLE:
+        plat.tilt(d)
+    assert plat.load(Direction.UP) == 69
+    for d in CYCLE:
+        plat.tilt(d)
+    assert plat.load(Direction.UP) == 69
+
+
+class Position(tuple):
+    """Tuple subclass to allow for position-wise operations rather than concatenation."""
+    def __add__(self, other):
+        return self.__class__(s+o for s, o in zip(self, other))
+    def __sub__(self, other):
+        return self.__class__(s-o for s, o in zip(self, other))
+
 
 class Direction(Enum):
     UP = 1,
@@ -26,21 +50,26 @@ class Direction(Enum):
     LEFT = 3,
     RIGHT = 4,
 
+    @property
     def to_pos(self):
         if self == Direction.UP:
-            return (-1, 0)
-        elif self == Direction.UP:
-            return (1, 0)
+            return Position((-1, 0))
+        elif self == Direction.DOWN:
+            return Position((1, 0))
         elif self == Direction.LEFT:
-            return (0, -1)
+            return Position((0, -1))
         elif self == Direction.RIGHT:
-            return (0, 1)
+            return Position((0, 1))
+
+
+CYCLE = [Direction.UP, Direction.LEFT, Direction.DOWN, Direction.RIGHT]
 
 
 class Platform:
     board = None
 
     def __init__(self, inp):
+        # Adding a border to avoid limit checking
         self.board = [['#']+list(l)+['#'] for l in inp.split('\n')]
         self.board.append(['#']*len(self.board[0]))
         self.board.insert(0, ['#']*len(self.board[0]))
@@ -48,16 +77,25 @@ class Platform:
     def __str__(self):
         return '\n'.join(''.join(l) for l in self.board)
 
+    def __getitem__(self, pos):
+        i, j = pos
+        return self.board[i][j]
+
+    def __setitem__(self, pos, x):
+        i, j = pos
+        self.board[i][j] = x
+
     def tilt(self, direction):
         if direction == Direction.UP:
             for j in range(len(self.board[0])):
                 for i in range(len(self.board)):
-                    if self.board[i][j] == 'O':
-                        self.board[i][j] = '.'
-                        new_i = i
-                        while self.board[new_i][j] == '.':
-                            new_i += -1
-                        self.board[new_i+1][j] = 'O'
+                    pos = Position((i, j))
+                    if self[pos] == 'O':
+                        self[pos] = '.'
+                        new_pos = pos
+                        while self[new_pos] == '.':
+                            new_pos += direction.to_pos
+                        self[new_pos - direction.to_pos] = 'O'
 
     def load(self, direction):
         ret = 0
