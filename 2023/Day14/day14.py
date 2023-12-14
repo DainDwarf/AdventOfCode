@@ -50,6 +50,16 @@ class Direction(Enum):
     LEFT = 3,
     RIGHT = 4,
 
+    def __neg__(self):
+        if self == Direction.UP:
+            return Direction.DOWN
+        elif self == Direction.DOWN:
+            return Direction.UP
+        elif self == Direction.LEFT:
+            return Direction.RIGHT
+        elif self == Direction.RIGHT:
+            return Direction.LEFT
+
     @property
     def to_pos(self):
         if self == Direction.UP:
@@ -103,8 +113,8 @@ class Platform:
                 for i in range(1, self.height-1):
                     yield Position((i, j))
         elif direction == Direction.UP:
-            for j in range(self.length-1, 1, -1):
-                for i in range(1, self.height-1):
+            for j in range(1, self.length-1):
+                for i in range(self.height-1, 0, -1):
                     yield Position((i, j))
         elif direction == Direction.RIGHT:
             for i in range(1, self.height-1):
@@ -112,18 +122,17 @@ class Platform:
                     yield Position((i, j))
         elif direction == Direction.LEFT:
             for i in range(1, self.height-1):
-                for j in range(self.length-1, 1, -1):
+                for j in range(self.length-1, 0, -1):
                     yield Position((i, j))
 
     def tilt(self, direction):
-        if direction == Direction.UP:
-            for pos in self.iter_position(Direction.DOWN):
-                if self[pos] == 'O':
-                    self[pos] = '.'
-                    new_pos = pos
-                    while self[new_pos] == '.':
-                        new_pos += direction.to_pos
-                    self[new_pos - direction.to_pos] = 'O'
+        for pos in self.iter_position(-direction):
+            if self[pos] == 'O':
+                self[pos] = '.'
+                new_pos = pos
+                while self[new_pos] == '.':
+                    new_pos += direction.to_pos
+                self[new_pos - direction.to_pos] = 'O'
 
     def load(self, direction):
         ret = 0
