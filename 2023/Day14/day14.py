@@ -85,17 +85,45 @@ class Platform:
         i, j = pos
         self.board[i][j] = x
 
+    @property
+    def length(self):
+        return len(self.board[0])
+
+    @property
+    def height(self):
+        return len(self.board)
+
+    def iter_position(self, direction = Direction.RIGHT):
+        """Iterate through the board positions excluding borders.
+
+        direction is used to choose the way of iterating.
+        Default is the usual european writing left-to-right."""
+        if direction == Direction.DOWN:
+            for j in range(1, self.length-1):
+                for i in range(1, self.height-1):
+                    yield Position((i, j))
+        elif direction == Direction.UP:
+            for j in range(self.length-1, 1, -1):
+                for i in range(1, self.height-1):
+                    yield Position((i, j))
+        elif direction == Direction.RIGHT:
+            for i in range(1, self.height-1):
+                for j in range(1, self.length-1):
+                    yield Position((i, j))
+        elif direction == Direction.LEFT:
+            for i in range(1, self.height-1):
+                for j in range(self.length-1, 1, -1):
+                    yield Position((i, j))
+
     def tilt(self, direction):
         if direction == Direction.UP:
-            for j in range(len(self.board[0])):
-                for i in range(len(self.board)):
-                    pos = Position((i, j))
-                    if self[pos] == 'O':
-                        self[pos] = '.'
-                        new_pos = pos
-                        while self[new_pos] == '.':
-                            new_pos += direction.to_pos
-                        self[new_pos - direction.to_pos] = 'O'
+            for pos in self.iter_position(Direction.DOWN):
+                if self[pos] == 'O':
+                    self[pos] = '.'
+                    new_pos = pos
+                    while self[new_pos] == '.':
+                        new_pos += direction.to_pos
+                    self[new_pos - direction.to_pos] = 'O'
 
     def load(self, direction):
         ret = 0
