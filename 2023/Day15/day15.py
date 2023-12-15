@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from collections import defaultdict, OrderedDict
 import pytest
 
 
@@ -23,6 +24,9 @@ def test_xmash(inp, exp):
 def test_one():
     assert part_one("rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7") == 1320
 
+def test_two():
+    assert part_two("rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7") == 145
+
 def xmash(string):
     ret = 0
     for c in string:
@@ -37,7 +41,28 @@ def part_one(inp):
 
 
 def part_two(inp):
-    pass
+    hashmap = OrderedDict()
+
+    # No need to actually put everything in boxes yet
+    for step in inp.split(','):
+        if '=' in step:
+            label, focal = step.split('=')
+            hashmap[label] = int(focal)
+        elif '-' in step:
+            label = step[:-1]
+            hashmap.pop(label, None)
+
+    #NOW put them in boxes
+    boxes = defaultdict(list)
+    for label, focal in hashmap.items():
+        boxes[xmash(label)].append(focal)
+
+    #Compute
+    ret = 0
+    for boxnum, lenses in sorted(boxes.items(), key=lambda t: t[0]):
+        for slot, focal in enumerate(lenses, 1):
+            ret += (1+boxnum)*slot*focal 
+    return ret
 
 
 if __name__ == '__main__':
