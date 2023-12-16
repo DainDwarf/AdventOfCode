@@ -24,6 +24,9 @@ def test_beam():
 def test_one():
     assert part_one(TEST_EXAMPLE) == 46
 
+def test_two():
+    assert part_two(TEST_EXAMPLE) == 51
+
 
 class Position(tuple):
     """Tuple subclass to allow for position-wise operations rather than concatenation."""
@@ -133,22 +136,8 @@ class Contraption:
             raise RuntimeError(f"Unrecognized cell {self[pos]} at position {pos}")
         return ret
 
-    def print_charges(self, charged_positions):
-        for i in range(len(self.cells)):
-            for j in range(len(self.cells[0])):
-                if (i, j) in charged_positions:
-                    print('C', end='')
-                else:
-                    print(self[i, j], end='')
-            print()
 
-
-def part_one(inp):
-    contraption = Contraption(inp)
-    contraption.print_charges({})
-    print()
-    start = Beam(Position((1, 1)), Direction.RIGHT)
-
+def energized_cells(contraption, start):
     to_propagate = set()
     to_propagate.add(start)
     visited = set()
@@ -157,17 +146,33 @@ def part_one(inp):
         visited.add(beam)
         new_beams = contraption.pass_beam(beam)
         for b in new_beams:
-            if b not in visited and contraption[b.position] != '#':
+            if b not in visited:
                 to_propagate.add(b)
 
-    positions = set(b.position for b in visited)
-    contraption.print_charges(positions)
+    positions = set(b.position for b in visited if contraption[b.position] != '#')
     return len(positions)
 
 
+def part_one(inp):
+    contraption = Contraption(inp)
+    start = Beam(Position((1, 1)), Direction.RIGHT)
+    return energized_cells(contraption, start)
+
 
 def part_two(inp):
-    pass
+    contraption = Contraption(inp)
+    all_starts = []
+    height = len(contraption.cells)
+    length = len(contraption.cells[0])
+    for i in range(1, height-1):
+        all_starts.append(Beam(Position((i, 1)), Direction.RIGHT))
+        all_starts.append(Beam(Position((i, length-2)), Direction.LEFT))
+    for j in range(1, length-1):
+        all_starts.append(Beam(Position((1, j)), Direction.DOWN))
+        all_starts.append(Beam(Position((height-2, length-j)), Direction.UP))
+
+    return max(energized_cells(contraption, start) for start in all_starts)
+
 
 
 if __name__ == '__main__':
